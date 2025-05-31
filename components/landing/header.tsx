@@ -1,35 +1,42 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { ChevronRight, Menu, X, Moon, Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useTheme } from "next-themes"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ChevronRight, Menu, X, Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 
 export function Header() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
     const handleScroll = () => {
       if (window.scrollY > 10) {
-        setIsScrolled(true)
+        setIsScrolled(true);
       } else {
-        setIsScrolled(false)
+        setIsScrolled(false);
       }
-    }
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   return (
     <header
@@ -71,27 +78,62 @@ export function Header() {
           </Link>
         </nav>
         <div className="hidden md:flex gap-4 items-center">
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
-            {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="rounded-full"
+          >
+            {mounted && theme === "dark" ? (
+              <Sun className="size-[18px]" />
+            ) : (
+              <Moon className="size-[18px]" />
+            )}
             <span className="sr-only">Toggle theme</span>
           </Button>
-          <Link
-            href="#"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Log in
-          </Link>
-          <Button className="rounded-full">
-            Get Started
-            <ChevronRight className="ml-1 size-4" />
-          </Button>
+          <SignedOut>
+            <SignInButton>
+              <Button variant="ghost" className="text-sm font-medium">
+                Log in
+              </Button>
+            </SignInButton>
+            <SignUpButton>
+              <Button className="rounded-full">
+                Get Started
+                <ChevronRight className="ml-1 size-4" />
+              </Button>
+            </SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
         </div>
         <div className="flex items-center gap-4 md:hidden">
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
-            {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="rounded-full"
+          >
+            {mounted && theme === "dark" ? (
+              <Sun className="size-[18px]" />
+            ) : (
+              <Moon className="size-[18px]" />
+            )}
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="size-5" />
+            ) : (
+              <Menu className="size-5" />
+            )}
             <span className="sr-only">Toggle menu</span>
           </Button>
         </div>
@@ -105,30 +147,59 @@ export function Header() {
           className="md:hidden absolute top-16 inset-x-0 bg-background/95 backdrop-blur-lg border-b"
         >
           <div className="container py-4 flex flex-col gap-4 px-4 md:px-6 mx-auto">
-            <Link href="#features" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="#features"
+              className="py-2 text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               Features
             </Link>
-            <Link href="#testimonials" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="#testimonials"
+              className="py-2 text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               Testimonials
             </Link>
-            <Link href="#pricing" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="#pricing"
+              className="py-2 text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               Pricing
             </Link>
-            <Link href="#faq" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="#faq"
+              className="py-2 text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               FAQ
             </Link>
-            <div className="flex flex-col gap-2 pt-2 border-t">
-              <Link href="#" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                Log in
-              </Link>
-              <Button className="rounded-full">
-                Get Started
-                <ChevronRight className="ml-1 size-4" />
-              </Button>
-            </div>
+            <SignedOut>
+              <div className="flex flex-col gap-2 pt-2 border-t">
+                <SignInButton>
+                  <Button
+                    variant="ghost"
+                    className="justify-start py-2 text-sm font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Log in
+                  </Button>
+                </SignInButton>
+                <SignUpButton>
+                  <Button
+                    className="rounded-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Get Started
+                    <ChevronRight className="ml-1 size-4" />
+                  </Button>
+                </SignUpButton>
+              </div>
+            </SignedOut>
           </div>
         </motion.div>
       )}
     </header>
-  )
+  );
 }
