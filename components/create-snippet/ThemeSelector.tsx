@@ -56,7 +56,7 @@ function ThemeSelector() {
         rounded-lg transition-all duration-200 border border-gray-800/50 hover:border-gray-700"
       >
         {/* hover state bg decorator */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-amber-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
 
         <Palette className="w-4 h-4 text-gray-400 group-hover:text-gray-300 transition-colors" />
 
@@ -98,7 +98,7 @@ function ThemeSelector() {
                 relative group w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#262637] transition-all duration-200
                 ${
                   theme === t.id
-                    ? "bg-blue-500/10 text-blue-400"
+                    ? "bg-orange-500/10 text-orange-400"
                     : "text-gray-300"
                 }
               `}
@@ -106,7 +106,7 @@ function ThemeSelector() {
               >
                 {/* bg gradient */}
                 <div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 
+                  className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-amber-500/5 opacity-0 
               group-hover:opacity-100 transition-opacity"
                 />
 
@@ -116,7 +116,7 @@ function ThemeSelector() {
                 flex items-center justify-center size-8 rounded-lg
                 ${
                   theme === t.id
-                    ? "bg-blue-500/10 text-blue-400"
+                    ? "bg-orange-500/10 text-orange-400"
                     : "bg-gray-800/50 text-gray-400"
                 }
                 group-hover:scale-110 transition-all duration-200
@@ -139,7 +139,7 @@ function ThemeSelector() {
                 {/* active theme border */}
                 {theme === t.id && (
                   <motion.div
-                    className="absolute inset-0 border-2 border-blue-500/30 rounded-lg"
+                    className="absolute inset-0 border-2 border-orange-500/30 rounded-lg"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}

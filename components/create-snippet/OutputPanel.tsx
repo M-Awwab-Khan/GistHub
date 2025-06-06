@@ -31,7 +31,7 @@ function OutputPanel() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#1e1e2e] ring-1 ring-gray-800/50">
-            <Terminal className="w-4 h-4 text-blue-400" />
+            <Terminal className="w-4 h-4 text-orange-400" />
           </div>
           <span className="text-sm font-medium text-gray-300">Output</span>
         </div>
@@ -40,12 +40,12 @@ function OutputPanel() {
           <button
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-gray-300 bg-[#1e1e2e] 
-            rounded-lg ring-1 ring-gray-800/50 hover:ring-gray-700/50 transition-all"
+            rounded-lg ring-1 ring-gray-800/50 hover:ring-orange-500/30 hover:bg-orange-500/10 transition-all"
           >
             {isCopied ? (
               <>
-                <CheckCircle className="w-3.5 h-3.5" />
-                Copied!
+                <CheckCircle className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-orange-400">Copied!</span>
               </>
             ) : (
               <>
@@ -77,7 +77,7 @@ function OutputPanel() {
             </div>
           ) : output ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400 mb-3">
+              <div className="flex items-center gap-2 text-orange-400 mb-3">
                 <CheckCircle className="w-5 h-5" />
                 <span className="font-medium">Execution Successful</span>
               </div>
@@ -86,7 +86,7 @@ function OutputPanel() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-gray-500">
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-800/50 ring-1 ring-gray-700/50 mb-4">
-                <Clock className="w-6 h-6" />
+                <Clock className="w-6 h-6 text-orange-400/60" />
               </div>
               <p className="text-center">
                 Run your code to see the output here...

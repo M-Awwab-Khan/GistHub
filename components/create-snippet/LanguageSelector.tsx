@@ -55,7 +55,7 @@ function LanguageSelector({ hasAccess }: { hasAccess: boolean }) {
       >
         {/* Decoration */}
         <div
-          className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/5 
+          className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/5 
         rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
           aria-hidden="true"
         />
@@ -113,7 +113,7 @@ function LanguageSelector({ hasAccess }: { hasAccess: boolean }) {
                       relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
                       ${
                         language === lang.id
-                          ? "bg-blue-500/10 text-blue-400"
+                          ? "bg-orange-500/10 text-orange-400"
                           : "text-gray-300"
                       }
                       ${isLocked ? "opacity-50" : "hover:bg-[#262637]"}
@@ -123,7 +123,7 @@ function LanguageSelector({ hasAccess }: { hasAccess: boolean }) {
                     >
                       {/* decorator */}
                       <div
-                        className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-lg 
+                        className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-amber-500/5 rounded-lg 
                       opacity-0 group-hover:opacity-100 transition-opacity"
                       />
 
@@ -132,13 +132,13 @@ function LanguageSelector({ hasAccess }: { hasAccess: boolean }) {
                          relative size-8 rounded-lg p-1.5 group-hover:scale-110 transition-transform
                          ${
                            language === lang.id
-                             ? "bg-blue-500/10"
+                             ? "bg-orange-500/10"
                              : "bg-gray-800/50"
                          }
                        `}
                       >
                         <div
-                          className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg 
+                          className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-lg 
                         opacity-0 group-hover:opacity-100 transition-opacity"
                         />
                         <Image
@@ -157,7 +157,7 @@ function LanguageSelector({ hasAccess }: { hasAccess: boolean }) {
                       {/* selected language border */}
                       {language === lang.id && (
                         <motion.div
-                          className="absolute inset-0 border-2 border-blue-500/30 rounded-lg"
+                          className="absolute inset-0 border-2 border-orange-500/30 rounded-lg"
                           transition={{
                             type: "spring",
                             bounce: 0.2,
@@ -170,7 +170,7 @@ function LanguageSelector({ hasAccess }: { hasAccess: boolean }) {
                         <Lock className="w-4 h-4 text-gray-500" />
                       ) : (
                         language === lang.id && (
-                          <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+                          <Sparkles className="w-4 h-4 text-orange-400 animate-pulse" />
                         )
                       )}
                     </button>
