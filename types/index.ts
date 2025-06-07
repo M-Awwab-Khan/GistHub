@@ -1,4 +1,5 @@
 import { Monaco } from "@monaco-editor/react";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 export interface Theme {
   id: string;
@@ -43,15 +44,25 @@ export interface CodeEditorState {
   error: string | null;
   theme: string;
   fontSize: number;
-  editor: Monaco | null;
+  editor: monaco.editor.IStandaloneCodeEditor | null;
   executionResult: ExecutionResult | null;
+  currentSnippetId: string | null;
+  autoSaveCallback: ((code: string) => Promise<void>) | null;
+  isSaving: boolean;
+  savingMessage: string;
 
-  setEditor: (editor: Monaco) => void;
+  setEditor: (editor: monaco.editor.IStandaloneCodeEditor) => void;
   getCode: () => string;
   setLanguage: (language: string) => void;
   setTheme: (theme: string) => void;
   setFontSize: (fontSize: number) => void;
   runCode: () => Promise<void>;
+  setCurrentSnippetId: (snippetId: string | null) => void;
+  setAutoSaveCallback: (
+    callback: ((code: string) => Promise<void>) | null
+  ) => void;
+  triggerAutoSave: () => void;
+  setSaving: (isSaving: boolean, message?: string) => void;
 }
 
 export interface Snippet {

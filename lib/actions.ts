@@ -115,3 +115,93 @@ export async function getStarredSnippets(clerkUserId: string) {
 
   return starredSnippets;
 }
+
+// Snippet operations
+export async function createSnippet({
+  title,
+  language,
+  code,
+  userId,
+  userName,
+}: {
+  title: string;
+  language: string;
+  code: string;
+  userId: string;
+  userName: string;
+}) {
+  const { userId: clerkUserId } = await auth();
+
+  if (!clerkUserId || clerkUserId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const [snippet] = await db
+    .insert(snippets)
+    .values({
+      title,
+      language,
+      code,
+      userId,
+      userName,
+    })
+    .returning({ id: snippets.id });
+
+  return snippet.id;
+}
+
+export async function getSnippet(snippetId: string) {
+  const snippet = await db
+    .select()
+    .from(snippets)
+    .where(eq(snippets.id, snippetId))
+    .limit(1);
+
+  return snippet[0] || null;
+}
+
+export async function updateSnippet({
+  snippetId,
+  title,
+  code,
+}: {
+  snippetId: string;
+  title?: string;
+  code?: string;
+}) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // First check if the user owns this snippet
+  const snippet = await getSnippet(snippetId);
+  if (!snippet || snippet.userId !== userId) {
+    throw new Error("Snippet not found or unauthorized");
+  }
+
+  const updateData: any = {
+    updatedAt: new Date(),
+  };
+
+  if (title !== undefined) {
+    updateData.title = title;
+  }
+
+  if (code !== undefined) {
+    updateData.code = code;
+  }
+
+  await db.update(snippets).set(updateData).where(eq(snippets.id, snippetId));
+
+  return { success: true };
+}
+
+export async function updateSnippetTitle(snippetId: string, title: string) {
+  return updateSnippet({ snippetId, title });
+}
+
+export async function updateSnippetCode(snippetId: string, code: string) {
+  return updateSnippet({ snippetId, code });
+}

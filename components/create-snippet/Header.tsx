@@ -1,4 +1,6 @@
-import { currentUser } from "@clerk/nextjs/server";
+"use client";
+
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Blocks, Code2, Sparkles } from "lucide-react";
 import { SignedIn } from "@clerk/nextjs";
@@ -6,20 +8,23 @@ import ThemeSelector from "./ThemeSelector";
 import LanguageSelector from "./LanguageSelector";
 import RunButton from "./RunButton";
 import HeaderProfileBtn from "./HeaderProfileBtn";
+import TitleEditor from "./TitleEditor";
+import SavingStatusIndicator from "./SavingStatusIndicator";
 
-async function Header() {
-  //   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-  const user = await currentUser();
+interface HeaderProps {
+  snippetId?: string;
+  snippetTitle?: string;
+  onTitleUpdate?: (newTitle: string) => void;
+}
 
-  //   const convexUser = await convex.query(api.users.getUser, {
-  //     userId: user?.id || "",
-  //   });
+function Header({ snippetId, snippetTitle, onTitleUpdate }: HeaderProps) {
+  const { user } = useUser();
 
   return (
     <div className="relative z-10">
       <div
         className="flex items-center lg:justify-between justify-center 
-        bg-[#0a0a0f]/80 backdrop-blur-xl p-6 mb-4 rounded-lg"
+        bg-gradient-to-br from-[#12121a] to-[#1a1a2e] backdrop-blur-xl p-6 mb-4 rounded-lg"
       >
         <div className="hidden lg:flex items-center gap-8">
           <Link href="/" className="flex items-center gap-3 group relative">
@@ -38,15 +43,30 @@ async function Header() {
               <Blocks className="size-6 text-orange-400 transform -rotate-6 group-hover:rotate-0 transition-transform duration-500" />
             </div>
 
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <span className="block text-lg font-semibold bg-gradient-to-r from-orange-400 via-amber-300 to-orange-400 text-transparent bg-clip-text">
                 GistHub
               </span>
               <span className="block text-xs text-orange-400/60 font-medium">
                 Interactive Code Editor
               </span>
-            </div>
+            </div> */}
           </Link>
+
+          {/* Title Editor and Saving Status */}
+          <div className="flex items-center gap-4">
+            {/* Title Editor - only show if we have snippet data */}
+            {snippetId && snippetTitle && onTitleUpdate && (
+              <TitleEditor
+                snippetId={snippetId}
+                initialTitle={snippetTitle}
+                onTitleUpdate={onTitleUpdate}
+              />
+            )}
+
+            {/* Saving Status Indicator */}
+            <SavingStatusIndicator />
+          </div>
 
           {/* Navigation */}
           <nav className="flex items-center space-x-1">

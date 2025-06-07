@@ -1,7 +1,7 @@
 import { CodeEditorState } from "@/types/index";
 import { LANGUAGE_CONFIG } from "@/constants";
 import { create } from "zustand";
-import { Monaco } from "@monaco-editor/react";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 const getInitialState = () => {
   // if we're on the server, return default values
@@ -25,6 +25,9 @@ const getInitialState = () => {
   };
 };
 
+// Debounce utility for auto-saving
+let autoSaveTimeout: NodeJS.Timeout | null = null;
+
 export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
   const initialState = getInitialState();
 
@@ -35,10 +38,14 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
     error: null,
     editor: null,
     executionResult: null,
+    currentSnippetId: null,
+    autoSaveCallback: null,
+    isSaving: false,
+    savingMessage: "",
 
     getCode: () => get().editor?.getValue() || "",
 
-    setEditor: (editor: Monaco) => {
+    setEditor: (editor: monaco.editor.IStandaloneCodeEditor) => {
       const savedCode = localStorage.getItem(`editor-code-${get().language}`);
       if (savedCode) editor.setValue(savedCode);
 
@@ -69,6 +76,47 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
         output: "",
         error: null,
       });
+    },
+
+    // Auto-save functionality
+    setCurrentSnippetId: (snippetId: string | null) => {
+      set({ currentSnippetId: snippetId });
+    },
+
+    setAutoSaveCallback: (
+      callback: ((code: string) => Promise<void>) | null
+    ) => {
+      set({ autoSaveCallback: callback });
+    },
+
+    triggerAutoSave: () => {
+      const { currentSnippetId, autoSaveCallback, getCode, setSaving } = get();
+
+      if (!currentSnippetId || !autoSaveCallback) return;
+
+      // Clear existing timeout
+      if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout);
+      }
+
+      // Show saving status immediately
+      setSaving(true, "Auto-saving...");
+
+      // Set new timeout for debounced auto-save
+      autoSaveTimeout = setTimeout(async () => {
+        try {
+          const code = getCode();
+          await autoSaveCallback(code);
+          setSaving(false, "Auto-saved");
+
+          // Clear the success message after 2 seconds
+          setTimeout(() => setSaving(false), 2000);
+        } catch (error) {
+          console.error("Auto-save failed:", error);
+          setSaving(false, "Auto-save failed");
+          setTimeout(() => setSaving(false), 2000);
+        }
+      }, 2000); // 2 second delay
     },
 
     runCode: async () => {
@@ -157,6 +205,10 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
       } finally {
         set({ isRunning: false });
       }
+    },
+
+    setSaving: (isSaving: boolean, message?: string) => {
+      set({ isSaving, savingMessage: message || "" });
     },
   };
 });
