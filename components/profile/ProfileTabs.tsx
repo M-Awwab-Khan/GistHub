@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ListVideo, Star } from "lucide-react";
+import { ListVideo, Loader2, Plus, Star } from "lucide-react";
 
 const TABS = [
   {
@@ -29,6 +29,7 @@ export default function ProfileTabs({
   const [activeTab, setActiveTab] = useState<"executions" | "starred">(
     "executions"
   );
+  const [isCreating, setIsCreating] = useState(false);
 
   return (
     <div
@@ -36,7 +37,7 @@ export default function ProfileTabs({
       shadow-black/50 border border-gray-800/50 backdrop-blur-xl overflow-hidden"
     >
       {/* Tabs */}
-      <div className="border-b border-gray-800/50">
+      <div className="border-b border-gray-800/50 flex justify-between items-center">
         <div className="flex space-x-1 p-4">
           {TABS.map((tab) => (
             <button
@@ -65,6 +66,47 @@ export default function ProfileTabs({
               </span>
             </button>
           ))}
+        </div>
+
+        {/* Create Snippet Button */}
+        <div className="p-4">
+          <motion.button
+            onClick={() => {}}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`
+        group relative inline-flex items-center gap-2.5 px-5 py-2.5
+        disabled:cursor-not-allowed
+        focus:outline-none
+        cursor-pointer
+      `}
+          >
+            {/* bg wit gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-500 rounded-xl opacity-100 transition-opacity group-hover:opacity-90" />
+
+            <div className="relative flex items-center gap-2.5">
+              {isCreating ? (
+                <>
+                  <div className="relative">
+                    <Loader2 className="w-4 h-4 animate-spin text-white/70" />
+                    <div className="absolute inset-0 blur animate-pulse" />
+                  </div>
+                  <span className="text-sm font-medium text-white/90">
+                    Creating...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="relative flex items-center justify-center w-4 h-4">
+                    <Plus className="w-4 h-4 text-white/90 transition-transform group-hover:scale-110 group-hover:text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-white/90 group-hover:text-white">
+                    Create Snippet
+                  </span>
+                </>
+              )}
+            </div>
+          </motion.button>
         </div>
       </div>
 
