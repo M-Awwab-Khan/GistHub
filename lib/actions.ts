@@ -433,3 +433,138 @@ export async function toggleSnippetVisibility(snippetId: string) {
       : null,
   };
 }
+
+export async function getPublicSnippets({
+  page = 1,
+  limit = 12,
+  search = "",
+  language = "",
+}: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  language?: string;
+} = {}) {
+  const offset = (page - 1) * limit;
+
+  let query = db
+    .select({
+      id: snippets.id,
+      title: snippets.title,
+      language: snippets.language,
+      code: snippets.code,
+      userName: snippets.userName,
+      userId: snippets.userId,
+      public: snippets.public,
+      createdAt: snippets.createdAt,
+      updatedAt: snippets.updatedAt,
+    })
+    .from(snippets)
+    .where(eq(snippets.public, true))
+    .orderBy(desc(snippets.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  // Apply search filter if provided
+  if (search) {
+    query = query.where(
+      sql`${snippets.public} = true AND (
+        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
+      )`
+    );
+  }
+
+  // Apply language filter if provided
+  if (language) {
+    query = query.where(
+      sql`${snippets.public} = true AND ${snippets.language} = ${language}`
+    );
+  }
+
+  // If both search and language filters are provided
+  if (search && language) {
+    query = query.where(
+      sql`${snippets.public} = true AND ${snippets.language} = ${language} AND (
+        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
+      )`
+    );
+  }
+
+  const results = await query;
+
+  // Get total count for pagination
+  let countQuery = db
+    .select({ count: count() })
+    .from(snippets)
+    .where(eq(snippets.public, true));
+
+  if (search && language) {
+    countQuery = countQuery.where(
+      sql`${snippets.public} = true AND ${snippets.language} = ${language} AND (
+        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
+      )`
+    );
+  } else if (search) {
+    countQuery = countQuery.where(
+      sql`${snippets.public} = true AND (
+        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
+        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
+      )`
+    );
+  } else if (language) {
+    countQuery = countQuery.where(
+      sql`${snippets.public} = true AND ${snippets.language} = ${language}`
+    );
+  }
+
+  const totalCountResult = await countQuery;
+  const totalCount = totalCountResult[0]?.count || 0;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  return {
+    snippets: results,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalCount,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    },
+  };
+}
+
+export async function getAvailableLanguages() {
+  const result = await db
+    .selectDistinct({ language: snippets.language })
+    .from(snippets)
+    .where(eq(snippets.public, true))
+    .orderBy(snippets.language);
+
+  return result.map((row) => row.language);
+}
+
+export async function deleteSnippet(snippetId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // First check if the user owns this snippet
+  const snippet = await getSnippet(snippetId);
+  if (!snippet || snippet.userId !== userId) {
+    throw new Error("Snippet not found or unauthorized");
+  }
+
+  // Delete the snippet (this will cascade delete comments and stars)
+  await db.delete(snippets).where(eq(snippets.id, snippetId));
+
+  return { success: true };
+}

@@ -66,11 +66,13 @@ export interface CodeEditorState {
 }
 
 export interface Snippet {
-  _id: string;
-  _creationTime: number;
-  userId: string;
+  id: string;
+  title: string;
   language: string;
   code: string;
-  title: string;
   userName: string;
+  userId: string;
+  public: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }

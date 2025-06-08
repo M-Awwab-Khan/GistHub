@@ -139,30 +139,29 @@ function ShareSnippetButton({
                 </div>
               </div>
             </div>
-          </div>
-
-          {currentlyPublic && (
-            <div className="mt-4 p-3 bg-[#181825] rounded-lg border border-[#313244] w-full overflow-hidden text-ellipsis">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium text-white">
-                    Public Link
+            {currentlyPublic && (
+              <div className="mt-4 p-3 bg-[#181825] rounded-lg border border-[#313244]">
+                <div className="flex items-center justify-between">
+                  <div className="overflow-hidden min-w-0 mr-3">
+                    <div className="text-sm font-medium text-white">
+                      Public Link
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {`${window.location.origin}/snippets/${snippetId}`}
+                    </div>
                   </div>
-                  <div className="w-full text-xs text-gray-400 ">
-                    {`${window.location.origin}/snippets/${snippetId}`}
-                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={copyPublicLink}
+                    className="p-2 hover:bg-[#313244]"
+                  >
+                    <Copy className="w-4 h-4 text-gray-400" />
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={copyPublicLink}
-                  className="p-2 hover:bg-[#313244]"
-                >
-                  <Copy className="w-4 h-4 text-gray-400" />
-                </Button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <DialogFooter>
