@@ -147,12 +147,14 @@ export async function createSnippet({
   code,
   userId,
   userName,
+  isPublic = false,
 }: {
   title: string;
   language: string;
   code: string;
   userId: string;
   userName: string;
+  isPublic?: boolean;
 }) {
   const { userId: clerkUserId } = await auth();
 
@@ -168,6 +170,7 @@ export async function createSnippet({
       code,
       userId,
       userName,
+      public: isPublic,
     })
     .returning({ id: snippets.id });
 
@@ -370,4 +373,63 @@ export async function deleteComment(commentId: string) {
   await db.delete(snippetComments).where(eq(snippetComments.id, commentId));
 
   return { success: true };
+}
+
+export async function getSnippetWithAccess(snippetId: string) {
+  const { userId } = await auth();
+
+  const snippet = await db
+    .select()
+    .from(snippets)
+    .where(eq(snippets.id, snippetId))
+    .limit(1);
+
+  if (!snippet[0]) {
+    return null;
+  }
+
+  // If snippet is public, anyone can access it
+  if (snippet[0].public) {
+    return snippet[0];
+  }
+
+  // If snippet is private, only the author can access it
+  if (!userId || snippet[0].userId !== userId) {
+    throw new Error("Access denied: This snippet is private");
+  }
+
+  return snippet[0];
+}
+
+export async function toggleSnippetVisibility(snippetId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // First check if the user owns this snippet
+  const snippet = await getSnippet(snippetId);
+  if (!snippet || snippet.userId !== userId) {
+    throw new Error("Snippet not found or unauthorized");
+  }
+
+  // Toggle the public status
+  const [updatedSnippet] = await db
+    .update(snippets)
+    .set({
+      public: !snippet.public,
+      updatedAt: new Date(),
+    })
+    .where(eq(snippets.id, snippetId))
+    .returning({ public: snippets.public });
+
+  return {
+    isPublic: updatedSnippet.public,
+    publicUrl: updatedSnippet.public
+      ? `${
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        }/snippets/${snippetId}`
+      : null,
+  };
 }

@@ -152,7 +152,10 @@ function EditorPanel() {
         </div>
       </div>
       {isShareDialogOpen && (
-        <ShareSnippetDialog onClose={() => setIsShareDialogOpen(false)} />
+        <ShareSnippetDialog
+          open={isShareDialogOpen}
+          onOpenChange={(open) => setIsShareDialogOpen(open)}
+        />
       )}
     </div>
   );

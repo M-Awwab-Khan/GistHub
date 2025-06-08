@@ -4,24 +4,31 @@ import { Clock, Code, MessageSquare, User } from "lucide-react";
 import CopyButton from "@/components/snippet/CopyButton";
 import Comments from "@/components/snippet/Comments";
 import ClientEditor from "@/components/snippet/ClientEditor";
-import { getSnippet, getSnippetComments } from "@/lib/actions";
+import ShareSnippetButton from "@/components/snippet/ShareSnippetButton";
+import { getSnippetWithAccess, getSnippetComments } from "@/lib/actions";
+import { auth } from "@clerk/nextjs/server";
 
-async function SnippetDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id: snippetId } = await params;
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+async function SnippetDetailPage({ params }: PageProps) {
+  const snippetId = params.id;
 
   try {
+    const { userId } = await auth();
     const [snippet, comments] = await Promise.all([
-      getSnippet(snippetId),
+      getSnippetWithAccess(snippetId),
       getSnippetComments(snippetId),
     ]);
 
     if (!snippet) {
       notFound();
     }
+
+    const isOwner = userId === snippet.userId;
 
     return (
       <div className="min-h-screen bg-[#0a0a0f]">
@@ -31,7 +38,7 @@ async function SnippetDetailPage({
           <div className="max-w-[1200px] mx-auto">
             {/* Header */}
             <div className="bg-[#121218] border border-[#ffffff0a] rounded-2xl p-6 sm:p-8 mb-6 backdrop-blur-xl">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center justify-center size-12 rounded-xl bg-[#ffffff08] p-2.5">
                     <img
@@ -62,8 +69,20 @@ async function SnippetDetailPage({
                     </div>
                   </div>
                 </div>
-                <div className="inline-flex items-center px-3 py-1.5 bg-[#ffffff08] text-[#808086] rounded-lg text-sm font-medium">
-                  {snippet.language}
+                <div className="flex items-center gap-2">
+                  {!snippet.public && (
+                    <div className="inline-flex items-center px-3 py-1.5 bg-amber-500/10 text-amber-400 rounded-lg text-sm font-medium border border-amber-500/20">
+                      Private
+                    </div>
+                  )}
+                  <div className="inline-flex items-center px-3 py-1.5 bg-[#ffffff08] text-[#808086] rounded-lg text-sm font-medium">
+                    {snippet.language}
+                  </div>
+                  <ShareSnippetButton
+                    snippetId={snippet.id}
+                    isPublic={snippet.public}
+                    isOwner={isOwner}
+                  />
                 </div>
               </div>
             </div>
@@ -85,7 +104,25 @@ async function SnippetDetailPage({
         </main>
       </div>
     );
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message?.includes("Access denied")) {
+      return (
+        <div className="min-h-screen bg-[#0a0a0f]">
+          <NavigationHeader />
+          <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+            <div className="text-center">
+              <h1 className="text-2xl font-semibold text-white mb-4">
+                Access Denied
+              </h1>
+              <p className="text-[#808086]">
+                This snippet is private and can only be viewed by its author.
+              </p>
+            </div>
+          </main>
+        </div>
+      );
+    }
+
     console.error("Error fetching snippet:", error);
     notFound();
   }

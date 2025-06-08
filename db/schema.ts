@@ -53,6 +53,7 @@ export const snippets = pgTable(
     language: text("language").notNull(),
     code: text("code").notNull(),
     userName: text("user_name").notNull(), // store user's name for easy access
+    public: boolean("public").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

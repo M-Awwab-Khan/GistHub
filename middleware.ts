@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-up(.*)",
   "/api/webhooks(.*)",
+  "/snippets/(.*)", // Allow snippet URLs to be accessed without auth - access control handled in the page
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
