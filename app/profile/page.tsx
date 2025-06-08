@@ -54,8 +54,8 @@ export default async function ProfilePage() {
 
         {/* Main content with tabs */}
         <ProfileTabs
-          executionsContent={<ExecutionsList executions={executions} />}
           snippetsContent={<UserSnippetsList userSnippets={userSnippets} />}
+          executionsContent={<ExecutionsList executions={executions} />}
           starredContent={
             <StarredSnippetsList starredSnippets={starredSnippets} />
           }

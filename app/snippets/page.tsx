@@ -10,27 +10,28 @@ import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
 import { cn } from "@/lib/utils";
 
 interface SnippetsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     search?: string;
     language?: string;
     view?: "grid" | "list";
-  };
+  }>;
 }
 
 export default async function SnippetsPage({
   searchParams,
 }: SnippetsPageProps) {
-  const page = parseInt(searchParams.page || "1");
-  const search = searchParams.search || "";
-  const language = searchParams.language || "";
-  const view = searchParams.view || "grid";
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const search = resolvedSearchParams.search || "";
+  const language = resolvedSearchParams.language || "";
+  const view = resolvedSearchParams.view || "grid";
 
   // Fetch data in parallel
   const [snippetsData, availableLanguages] = await Promise.all([
     getPublicSnippets({
       page,
-      limit: 12,
+      limit: 9,
       search,
       language,
     }),

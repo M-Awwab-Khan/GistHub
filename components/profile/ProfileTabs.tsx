@@ -7,11 +7,6 @@ import Link from "next/link";
 
 const TABS = [
   {
-    id: "executions",
-    label: "Code Executions",
-    icon: ListVideo,
-  },
-  {
     id: "snippets",
     label: "Your Snippets",
     icon: Code2,
@@ -20,6 +15,11 @@ const TABS = [
     id: "starred",
     label: "Starred Snippets",
     icon: Star,
+  },
+  {
+    id: "executions",
+    label: "Code Executions",
+    icon: ListVideo,
   },
 ];
 
@@ -36,8 +36,7 @@ export default function ProfileTabs({
 }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<
     "executions" | "snippets" | "starred"
-  >("executions");
-  const [isCreating, setIsCreating] = useState(false);
+  >("snippets");
 
   return (
     <div className="overflow-hidden rounded-3xl border border-gray-800/50 bg-gradient-to-br from-[#12121a] to-[#1a1a2e] shadow-2xl shadow-black/50 backdrop-blur-xl">
