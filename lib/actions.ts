@@ -1,7 +1,13 @@
 "use server";
 
 import { db } from "@/db";
-import { users, codeExecutions, snippets, stars } from "@/db/schema";
+import {
+  users,
+  codeExecutions,
+  snippets,
+  stars,
+  snippetComments,
+} from "@/db/schema";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
@@ -284,4 +290,84 @@ export async function isSnippetStarred(snippetId: string) {
     .limit(1);
 
   return result.length > 0;
+}
+
+// Comment operations
+export async function getSnippetComments(snippetId: string) {
+  const comments = await db
+    .select({
+      id: snippetComments.id,
+      snippetId: snippetComments.snippetId,
+      userId: snippetComments.userId,
+      userName: snippetComments.userName,
+      content: snippetComments.content,
+      createdAt: snippetComments.createdAt,
+      updatedAt: snippetComments.updatedAt,
+    })
+    .from(snippetComments)
+    .where(eq(snippetComments.snippetId, snippetId))
+    .orderBy(desc(snippetComments.createdAt));
+
+  return comments;
+}
+
+export async function addComment({
+  snippetId,
+  content,
+}: {
+  snippetId: string;
+  content: string;
+}) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Get user data to get the user name
+  const userData = await getUserData();
+  if (!userData) {
+    throw new Error("User not found");
+  }
+
+  // Verify snippet exists
+  const snippet = await getSnippet(snippetId);
+  if (!snippet) {
+    throw new Error("Snippet not found");
+  }
+
+  const [comment] = await db
+    .insert(snippetComments)
+    .values({
+      snippetId,
+      userId,
+      userName: userData.name,
+      content,
+    })
+    .returning();
+
+  return comment;
+}
+
+export async function deleteComment(commentId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // First check if the user owns this comment
+  const comment = await db
+    .select()
+    .from(snippetComments)
+    .where(eq(snippetComments.id, commentId))
+    .limit(1);
+
+  if (!comment[0] || comment[0].userId !== userId) {
+    throw new Error("Comment not found or unauthorized");
+  }
+
+  await db.delete(snippetComments).where(eq(snippetComments.id, commentId));
+
+  return { success: true };
 }
