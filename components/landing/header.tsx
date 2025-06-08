@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Menu, X, Moon, Sun } from "lucide-react";
+import { ChevronRight, Menu, X, Moon, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import {
@@ -13,6 +13,7 @@ import {
   SignedOut,
   UserButton,
 } from "@clerk/nextjs";
+import { CircleUserRound } from "lucide-react";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -105,7 +106,15 @@ export function Header() {
             </SignUpButton>
           </SignedOut>
           <SignedIn>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Profile"
+                  labelIcon={<User className="size-4" />}
+                  href="/profile"
+                />
+              </UserButton.MenuItems>
+            </UserButton>
           </SignedIn>
         </div>
         <div className="flex items-center gap-4 md:hidden">
@@ -122,7 +131,15 @@ export function Header() {
             )}
           </Button>
           <SignedIn>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Profile"
+                  labelIcon={<User className="size-4" />}
+                  href="/profile"
+                />
+              </UserButton.MenuItems>
+            </UserButton>
           </SignedIn>
           <Button
             variant="ghost"

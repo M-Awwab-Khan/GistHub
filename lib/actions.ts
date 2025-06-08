@@ -116,6 +116,24 @@ export async function getStarredSnippets(clerkUserId: string) {
   return starredSnippets;
 }
 
+export async function getUserSnippets(clerkUserId: string) {
+  const userSnippets = await db
+    .select({
+      id: snippets.id,
+      title: snippets.title,
+      language: snippets.language,
+      code: snippets.code,
+      userName: snippets.userName,
+      createdAt: snippets.createdAt,
+      updatedAt: snippets.updatedAt,
+    })
+    .from(snippets)
+    .where(eq(snippets.userId, clerkUserId))
+    .orderBy(desc(snippets.updatedAt));
+
+  return userSnippets;
+}
+
 // Snippet operations
 export async function createSnippet({
   title,
@@ -204,4 +222,66 @@ export async function updateSnippetTitle(snippetId: string, title: string) {
 
 export async function updateSnippetCode(snippetId: string, code: string) {
   return updateSnippet({ snippetId, code });
+}
+
+// Star operations
+export async function toggleStarSnippet(snippetId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check if already starred
+  const existingStar = await db
+    .select()
+    .from(stars)
+    .where(
+      sql`${stars.userId} = ${userId} AND ${stars.snippetId} = ${snippetId}`
+    )
+    .limit(1);
+
+  if (existingStar.length > 0) {
+    // Unstar - remove the star
+    await db
+      .delete(stars)
+      .where(
+        sql`${stars.userId} = ${userId} AND ${stars.snippetId} = ${snippetId}`
+      );
+    return { starred: false };
+  } else {
+    // Star - add the star
+    await db.insert(stars).values({
+      userId,
+      snippetId,
+    });
+    return { starred: true };
+  }
+}
+
+export async function getSnippetStarCount(snippetId: string) {
+  const result = await db
+    .select({ count: count() })
+    .from(stars)
+    .where(eq(stars.snippetId, snippetId));
+
+  return result[0]?.count || 0;
+}
+
+export async function isSnippetStarred(snippetId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return false;
+  }
+
+  const result = await db
+    .select()
+    .from(stars)
+    .where(
+      sql`${stars.userId} = ${userId} AND ${stars.snippetId} = ${snippetId}`
+    )
+    .limit(1);
+
+  return result.length > 0;
 }

@@ -61,7 +61,7 @@ export default function CreateSnippetPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0f0a0a] to-[#0a0a0f]">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0f0a0a] to-[#0a0a0f] flex items-center justify-center">
       <div className="max-w-2xl mx-auto p-6">
         {/* Header */}
         <motion.div

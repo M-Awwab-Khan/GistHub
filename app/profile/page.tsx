@@ -5,11 +5,13 @@ import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import ExecutionsList from "@/components/profile/ExecutionsList";
 import StarredSnippetsList from "@/components/profile/StarredSnippetsList";
+import UserSnippetsList from "@/components/profile/UserSnippetsList";
 import {
   getUserData,
   getUserStats,
   getUserExecutions,
   getStarredSnippets,
+  getUserSnippets,
 } from "@/lib/actions";
 
 export default async function ProfilePage() {
@@ -20,12 +22,14 @@ export default async function ProfilePage() {
   }
 
   // Fetch all data in parallel
-  const [userData, userStats, executions, starredSnippets] = await Promise.all([
-    getUserData(),
-    getUserStats(user.id),
-    getUserExecutions(user.id, 10, 0),
-    getStarredSnippets(user.id),
-  ]);
+  const [userData, userStats, executions, starredSnippets, userSnippets] =
+    await Promise.all([
+      getUserData(),
+      getUserStats(user.id),
+      getUserExecutions(user.id, 10, 0),
+      getStarredSnippets(user.id),
+      getUserSnippets(user.id),
+    ]);
 
   if (!userData) {
     // If user data doesn't exist in our database, you might want to create it here
@@ -51,6 +55,7 @@ export default async function ProfilePage() {
         {/* Main content with tabs */}
         <ProfileTabs
           executionsContent={<ExecutionsList executions={executions} />}
+          snippetsContent={<UserSnippetsList userSnippets={userSnippets} />}
           starredContent={
             <StarredSnippetsList starredSnippets={starredSnippets} />
           }
