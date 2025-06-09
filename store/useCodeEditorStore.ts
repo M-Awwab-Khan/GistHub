@@ -93,6 +93,7 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
       const { currentSnippetId, autoSaveCallback, getCode, setSaving } = get();
 
       if (!currentSnippetId || !autoSaveCallback) return;
+      console.log("GETTING CODE", getCode());
 
       // Clear existing timeout
       if (autoSaveTimeout) {

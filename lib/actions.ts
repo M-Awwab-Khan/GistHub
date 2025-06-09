@@ -7,8 +7,9 @@ import {
   snippets,
   stars,
   snippetComments,
+  snippetCollaborators,
 } from "@/db/schema";
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, count, sql, or, and } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -447,7 +448,31 @@ export async function getPublicSnippets({
 } = {}) {
   const offset = (page - 1) * limit;
 
-  let query = db
+  // Build where conditions
+  let whereConditions = [eq(snippets.public, true)];
+
+  if (search && language) {
+    whereConditions.push(
+      eq(snippets.language, language),
+      or(
+        sql`LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`})`,
+        sql`LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`})`,
+        sql`LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})`
+      )
+    );
+  } else if (search) {
+    whereConditions.push(
+      or(
+        sql`LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`})`,
+        sql`LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`})`,
+        sql`LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})`
+      )
+    );
+  } else if (language) {
+    whereConditions.push(eq(snippets.language, language));
+  }
+
+  const results = await db
     .select({
       id: snippets.id,
       title: snippets.title,
@@ -460,71 +485,17 @@ export async function getPublicSnippets({
       updatedAt: snippets.updatedAt,
     })
     .from(snippets)
-    .where(eq(snippets.public, true))
+    .where(and(...whereConditions))
     .orderBy(desc(snippets.createdAt))
     .limit(limit)
     .offset(offset);
 
-  // Apply search filter if provided
-  if (search) {
-    query = query.where(
-      sql`${snippets.public} = true AND (
-        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
-      )`
-    );
-  }
-
-  // Apply language filter if provided
-  if (language) {
-    query = query.where(
-      sql`${snippets.public} = true AND ${snippets.language} = ${language}`
-    );
-  }
-
-  // If both search and language filters are provided
-  if (search && language) {
-    query = query.where(
-      sql`${snippets.public} = true AND ${snippets.language} = ${language} AND (
-        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
-      )`
-    );
-  }
-
-  const results = await query;
-
-  // Get total count for pagination
-  let countQuery = db
+  // Get total count for pagination with same conditions
+  const totalCountResult = await db
     .select({ count: count() })
     .from(snippets)
-    .where(eq(snippets.public, true));
+    .where(and(...whereConditions));
 
-  if (search && language) {
-    countQuery = countQuery.where(
-      sql`${snippets.public} = true AND ${snippets.language} = ${language} AND (
-        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
-      )`
-    );
-  } else if (search) {
-    countQuery = countQuery.where(
-      sql`${snippets.public} = true AND (
-        LOWER(${snippets.title}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.language}) LIKE LOWER(${`%${search}%`}) OR
-        LOWER(${snippets.userName}) LIKE LOWER(${`%${search}%`})
-      )`
-    );
-  } else if (language) {
-    countQuery = countQuery.where(
-      sql`${snippets.public} = true AND ${snippets.language} = ${language}`
-    );
-  }
-
-  const totalCountResult = await countQuery;
   const totalCount = totalCountResult[0]?.count || 0;
   const totalPages = Math.ceil(totalCount / limit);
 
@@ -567,4 +538,203 @@ export async function deleteSnippet(snippetId: string) {
   await db.delete(snippets).where(eq(snippets.id, snippetId));
 
   return { success: true };
+}
+
+// Collaborator management functions
+export async function addCollaborator(snippetId: string, email: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check if user owns this snippet
+  const snippet = await getSnippet(snippetId);
+  if (!snippet || snippet.userId !== userId) {
+    throw new Error("Snippet not found or unauthorized");
+  }
+
+  // Find user by email
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (!user[0]) {
+    throw new Error("User not found with this email");
+  }
+
+  // Check if user is already a collaborator
+  const existingCollaborator = await db
+    .select()
+    .from(snippetCollaborators)
+    .where(
+      and(
+        eq(snippetCollaborators.snippetId, snippetId),
+        eq(snippetCollaborators.userId, user[0].userId)
+      )
+    )
+    .limit(1);
+
+  if (existingCollaborator.length > 0) {
+    throw new Error("User is already a collaborator");
+  }
+
+  // Don't allow owner to add themselves
+  if (user[0].userId === snippet.userId) {
+    throw new Error("Cannot add snippet owner as collaborator");
+  }
+
+  // Add collaborator
+  await db.insert(snippetCollaborators).values({
+    snippetId,
+    userId: user[0].userId,
+    email: user[0].email,
+    name: user[0].name,
+    addedBy: userId,
+  });
+
+  return { success: true, collaborator: user[0] };
+}
+
+export async function removeCollaborator(
+  snippetId: string,
+  collaboratorUserId: string
+) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check if user owns this snippet
+  const snippet = await getSnippet(snippetId);
+  if (!snippet || snippet.userId !== userId) {
+    throw new Error("Snippet not found or unauthorized");
+  }
+
+  // Remove collaborator
+  await db
+    .delete(snippetCollaborators)
+    .where(
+      and(
+        eq(snippetCollaborators.snippetId, snippetId),
+        eq(snippetCollaborators.userId, collaboratorUserId)
+      )
+    );
+
+  return { success: true };
+}
+
+export async function getSnippetCollaborators(snippetId: string) {
+  const collaborators = await db
+    .select({
+      id: snippetCollaborators.id,
+      snippetId: snippetCollaborators.snippetId,
+      userId: snippetCollaborators.userId,
+      email: snippetCollaborators.email,
+      name: snippetCollaborators.name,
+      addedBy: snippetCollaborators.addedBy,
+      createdAt: snippetCollaborators.createdAt,
+    })
+    .from(snippetCollaborators)
+    .where(eq(snippetCollaborators.snippetId, snippetId))
+    .orderBy(desc(snippetCollaborators.createdAt));
+
+  return collaborators;
+}
+
+export async function checkSnippetEditPermission(snippetId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return { canEdit: false, isOwner: false };
+  }
+
+  const snippet = await getSnippet(snippetId);
+  if (!snippet) {
+    return { canEdit: false, isOwner: false };
+  }
+
+  const isOwner = snippet.userId === userId;
+
+  // Check if user is a collaborator
+  const collaborator = await db
+    .select()
+    .from(snippetCollaborators)
+    .where(
+      and(
+        eq(snippetCollaborators.snippetId, snippetId),
+        eq(snippetCollaborators.userId, userId)
+      )
+    )
+    .limit(1);
+
+  const isCollaborator = collaborator.length > 0;
+  const canEdit = isOwner || isCollaborator;
+
+  return { canEdit, isOwner, isCollaborator };
+}
+
+// Update the existing getSnippet function to include collaborators
+export async function getSnippetWithCollaborators(snippetId: string) {
+  const snippet = await getSnippet(snippetId);
+  if (!snippet) {
+    return null;
+  }
+
+  const collaborators = await getSnippetCollaborators(snippetId);
+
+  return {
+    ...snippet,
+    collaborators,
+  };
+}
+
+// Update snippet functions to check for edit permissions
+export async function updateSnippetWithCollaboratorCheck({
+  snippetId,
+  title,
+  code,
+}: {
+  snippetId: string;
+  title?: string;
+  code?: string;
+}) {
+  const { canEdit } = await checkSnippetEditPermission(snippetId);
+
+  if (!canEdit) {
+    throw new Error("You don't have permission to edit this snippet");
+  }
+
+  const updateData: any = {
+    updatedAt: new Date(),
+  };
+
+  if (title !== undefined) {
+    updateData.title = title;
+  }
+
+  if (code !== undefined) {
+    updateData.code = code;
+  }
+
+  await db.update(snippets).set(updateData).where(eq(snippets.id, snippetId));
+
+  return { success: true };
+}
+
+export async function updateSnippetTitleWithCollaboratorCheck(
+  snippetId: string,
+  title: string
+) {
+  return updateSnippetWithCollaboratorCheck({ snippetId, title });
+}
+
+export async function updateSnippetCodeWithCollaboratorCheck(
+  snippetId: string,
+  code: string
+) {
+  return updateSnippetWithCollaboratorCheck({ snippetId, code });
 }

@@ -20,25 +20,19 @@ function EditorPanel() {
 
   const mounted = useMounted();
 
-  useEffect(() => {
-    const savedCode = localStorage.getItem(`editor-code-${language}`);
-    const newCode = savedCode || LANGUAGE_CONFIG[language].defaultCode;
-    if (editor) editor.setValue(newCode);
-  }, [language, editor]);
+  // useEffect(() => {
+  //   const savedCode = localStorage.getItem(`editor-code-${language}`);
+  //   const newCode = savedCode || LANGUAGE_CONFIG[language].defaultCode;
+  //   if (editor) editor.setValue(newCode);
+  // }, [language, editor]);
 
   useEffect(() => {
     const savedFontSize = localStorage.getItem("editor-font-size");
     if (savedFontSize) setFontSize(parseInt(savedFontSize));
   }, [setFontSize]);
 
-  const handleRefresh = () => {
-    const defaultCode = LANGUAGE_CONFIG[language].defaultCode;
-    if (editor) editor.setValue(defaultCode);
-    localStorage.removeItem(`editor-code-${language}`);
-  };
-
   const handleEditorChange = (value: string | undefined) => {
-    if (value) localStorage.setItem(`editor-code-${language}`, value);
+    // if (value) localStorage.setItem(`editor-code-${language}`, value);
   };
 
   const handleFontSizeChange = (newSize: number) => {
@@ -90,16 +84,6 @@ function EditorPanel() {
                 </span>
               </div>
             </div>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleRefresh}
-              className="p-2 bg-[#1e1e2e] hover:bg-[#2a2a3a] rounded-lg ring-1 ring-white/5 transition-colors"
-              aria-label="Reset to default code"
-            >
-              <RotateCcwIcon className="size-4 text-gray-400" />
-            </motion.button>
 
             {/* Share Button */}
             <motion.button

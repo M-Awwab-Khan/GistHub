@@ -65,6 +65,16 @@ export interface CodeEditorState {
   setSaving: (isSaving: boolean, message?: string) => void;
 }
 
+export interface SnippetCollaborator {
+  id: string;
+  snippetId: string;
+  userId: string;
+  email: string;
+  name: string;
+  addedBy: string;
+  createdAt: Date;
+}
+
 export interface Snippet {
   id: string;
   title: string;
@@ -75,4 +85,5 @@ export interface Snippet {
   public: boolean;
   createdAt: Date;
   updatedAt: Date;
+  collaborators?: SnippetCollaborator[];
 }

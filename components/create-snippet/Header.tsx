@@ -2,7 +2,7 @@
 
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { Blocks, Code2, Sparkles } from "lucide-react";
+import { Blocks, Code2, Sparkles, Users } from "lucide-react";
 import { SignedIn } from "@clerk/nextjs";
 import ThemeSelector from "./ThemeSelector";
 import LanguageSelector from "./LanguageSelector";
@@ -10,14 +10,27 @@ import RunButton from "./RunButton";
 import HeaderProfileBtn from "./HeaderProfileBtn";
 import TitleEditor from "./TitleEditor";
 import SavingStatusIndicator from "./SavingStatusIndicator";
+import CollaboratorManager from "./CollaboratorManager";
+import { SnippetCollaborator } from "@/types";
 
 interface HeaderProps {
   snippetId?: string;
   snippetTitle?: string;
   onTitleUpdate?: (newTitle: string) => void;
+  // New props for collaboration
+  collaborators?: SnippetCollaborator[];
+  isOwner?: boolean;
+  onCollaboratorsUpdate?: () => void;
 }
 
-function Header({ snippetId, snippetTitle, onTitleUpdate }: HeaderProps) {
+function Header({
+  snippetId,
+  snippetTitle,
+  onTitleUpdate,
+  collaborators = [],
+  isOwner = false,
+  onCollaboratorsUpdate,
+}: HeaderProps) {
   const { user } = useUser();
 
   return (
@@ -95,6 +108,32 @@ function Header({ snippetId, snippetTitle, onTitleUpdate }: HeaderProps) {
             <ThemeSelector />
             {/* <LanguageSelector hasAccess={true} /> */}
           </div>
+
+          {/* Collaborator Management Button - only show if we have snippet data and user is owner */}
+          {snippetId && isOwner && onCollaboratorsUpdate && (
+            <CollaboratorManager
+              snippetId={snippetId}
+              collaborators={collaborators}
+              isOwner={isOwner}
+              onUpdate={onCollaboratorsUpdate}
+            >
+              <button
+                className="relative group flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-300 bg-gray-800/50 
+                hover:bg-blue-500/10 border border-gray-800 hover:border-blue-500/50 transition-all duration-300 shadow-lg overflow-hidden"
+              >
+                <div
+                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 
+                  to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+                <Users className="w-4 h-4 relative z-10 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium relative z-10 group-hover:text-white transition-colors">
+                  {collaborators.length > 0
+                    ? `${collaborators.length}`
+                    : "Collaborators"}
+                </span>
+              </button>
+            </CollaboratorManager>
+          )}
 
           {true && (
             <Link

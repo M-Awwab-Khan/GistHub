@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Edit3, Check, X } from "lucide-react";
-import { updateSnippetTitle } from "@/lib/actions";
+import { updateSnippetTitleWithCollaboratorCheck } from "@/lib/actions";
 import { useCodeEditorStore } from "@/store/useCodeEditorStore";
 import toast from "react-hot-toast";
 
@@ -45,7 +45,7 @@ export default function TitleEditor({
 
     setSaving(true, "Saving title...");
     try {
-      await updateSnippetTitle(snippetId, title.trim());
+      await updateSnippetTitleWithCollaboratorCheck(snippetId, title.trim());
       onTitleUpdate(title.trim());
       setIsEditing(false);
       setSaving(false, "Title saved");

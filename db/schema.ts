@@ -100,6 +100,31 @@ export const stars = pgTable(
   })
 );
 
+export const snippetCollaborators = pgTable(
+  "snippet_collaborators",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    snippetId: uuid("snippet_id")
+      .notNull()
+      .references(() => snippets.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(), // Clerk user ID
+    email: text("email").notNull(), // User email for easy identification
+    name: text("name").notNull(), // User name for display
+    addedBy: text("added_by").notNull(), // Who added this collaborator
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    snippetIdIdx: index("snippet_collaborators_snippet_id_idx").on(
+      table.snippetId
+    ),
+    userIdIdx: index("snippet_collaborators_user_id_idx").on(table.userId),
+    uniqueCollaborator: index("snippet_collaborators_unique_idx").on(
+      table.snippetId,
+      table.userId
+    ),
+  })
+);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   codeExecutions: many(codeExecutions),
@@ -110,6 +135,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const snippetsRelations = relations(snippets, ({ many }) => ({
   comments: many(snippetComments),
   stars: many(stars),
+  collaborators: many(snippetCollaborators),
 }));
 
 export const snippetCommentsRelations = relations(
@@ -135,3 +161,13 @@ export const codeExecutionsRelations = relations(codeExecutions, ({ one }) => ({
     references: [users.userId],
   }),
 }));
+
+export const snippetCollaboratorsRelations = relations(
+  snippetCollaborators,
+  ({ one }) => ({
+    snippet: one(snippets, {
+      fields: [snippetCollaborators.snippetId],
+      references: [snippets.id],
+    }),
+  })
+);
