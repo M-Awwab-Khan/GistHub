@@ -11,29 +11,77 @@ import { EditorPanelSkeleton } from "./EditorPanelSkeleton";
 import useMounted from "@/hooks/useMounted";
 import ShareSnippetDialog from "./ShareSnippetDialog";
 import AIEditor from "./AIEditor";
+import { updateSnippetCodeWithCollaboratorCheck } from "@/lib/actions";
+import { Snippet } from "@/types";
 
-function EditorPanel() {
+interface EditorPanelProps {
+  snippet?: Snippet;
+}
+
+function EditorPanel({ snippet }: EditorPanelProps) {
   const clerk = useClerk();
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const { language, theme, fontSize, editor, setFontSize, setEditor } =
-    useCodeEditorStore();
+  const {
+    theme,
+    fontSize,
+    setFontSize,
+    setEditor,
+    setSaving,
+    // Only use what we actually need from the store
+    editor,
+  } = useCodeEditorStore();
 
   const mounted = useMounted();
 
-  // useEffect(() => {
-  //   const savedCode = localStorage.getItem(`editor-code-${language}`);
-  //   const newCode = savedCode || LANGUAGE_CONFIG[language].defaultCode;
-  //   if (editor) editor.setValue(newCode);
-  // }, [language, editor]);
+  // Initialize editor with snippet data
+  useEffect(() => {
+    if (snippet && editor) {
+      // Set the editor value to the snippet code
+      // editor.setValue(snippet.code);
 
+      // Set up auto-save for this specific snippet
+      const handleAutoSave = async (code: string) => {
+        setSaving(true, "Auto-saving...");
+        try {
+          await updateSnippetCodeWithCollaboratorCheck(snippet.id, code);
+          setSaving(false, "Saved successful");
+        } catch (error) {
+          console.error("Auto-save failed:", error);
+          setSaving(false, "Auto-save failed");
+        }
+      };
+
+      // Set up debounced auto-save
+      let autoSaveTimeout: NodeJS.Timeout;
+      const debouncedAutoSave = (code: string) => {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+          handleAutoSave(code).finally(() => {
+            setTimeout(() => {
+              setSaving(false, undefined);
+            }, 1000);
+          });
+        }, 2000);
+      };
+
+      // Listen to editor changes for auto-save
+      const disposable = editor.onDidChangeModelContent(() => {
+        const currentCode = editor.getValue();
+        debouncedAutoSave(currentCode);
+      });
+
+      return () => {
+        disposable.dispose();
+        clearTimeout(autoSaveTimeout);
+      };
+    }
+  }, [snippet, editor]);
+
+  // Load font size from localStorage
   useEffect(() => {
     const savedFontSize = localStorage.getItem("editor-font-size");
     if (savedFontSize) setFontSize(parseInt(savedFontSize));
   }, [setFontSize]);
-
-  const handleEditorChange = (value: string | undefined) => {
-    // if (value) localStorage.setItem(`editor-code-${language}`, value);
-  };
 
   const handleFontSizeChange = (newSize: number) => {
     const size = Math.min(Math.max(newSize, 12), 24);
@@ -42,6 +90,10 @@ function EditorPanel() {
   };
 
   if (!mounted) return null;
+
+  // Get language from snippet or default
+  const language = snippet?.language || "javascript";
+  console.log(language);
 
   return (
     <div className="relative">
@@ -60,7 +112,9 @@ function EditorPanel() {
             <div>
               <h2 className="text-sm font-medium text-white">Code Editor</h2>
               <p className="text-xs text-gray-500">
-                Write and execute your code
+                {snippet
+                  ? `Editing: ${snippet.title}`
+                  : "Write and execute your code"}
               </p>
             </div>
           </div>
@@ -85,17 +139,19 @@ function EditorPanel() {
               </div>
             </div>
 
-            {/* Share Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setIsShareDialogOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg overflow-hidden bg-gradient-to-r
-               from-orange-500 to-amber-500 opacity-90 hover:opacity-100 transition-opacity"
-            >
-              <ShareIcon className="size-4 text-white" />
-              <span className="text-sm font-medium text-white ">Share</span>
-            </motion.button>
+            {/* Share Button - only show if we have a snippet */}
+            {snippet && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setIsShareDialogOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg overflow-hidden bg-gradient-to-r
+                 from-orange-500 to-amber-500 opacity-90 hover:opacity-100 transition-opacity"
+              >
+                <ShareIcon className="size-4 text-white" />
+                <span className="text-sm font-medium text-white ">Share</span>
+              </motion.button>
+            )}
           </div>
         </div>
 
@@ -107,14 +163,14 @@ function EditorPanel() {
               language={language}
               theme={theme}
               fontSize={fontSize}
-              handleEditorChange={handleEditorChange}
+              handleEditorChange={() => {}} // Auto-save is handled in useEffect above
             />
           )}
 
           {!clerk.loaded && <EditorPanelSkeleton />}
         </div>
       </div>
-      {isShareDialogOpen && (
+      {isShareDialogOpen && snippet && (
         <ShareSnippetDialog
           open={isShareDialogOpen}
           onOpenChange={(open) => setIsShareDialogOpen(open)}

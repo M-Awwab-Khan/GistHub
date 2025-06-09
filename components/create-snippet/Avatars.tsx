@@ -14,7 +14,7 @@ export function Avatars() {
       })}
 
       {currentUser && (
-        <div className="relative ml-8 first:ml-0">
+        <div className="relative ml-8 last:ml-0">
           <Avatar
             picture={currentUser.info.picture}
             name={currentUser.info.name}

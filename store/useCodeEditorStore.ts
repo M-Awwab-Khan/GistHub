@@ -7,37 +7,33 @@ const getInitialState = () => {
   // if we're on the server, return default values
   if (typeof window === "undefined") {
     return {
-      language: "javascript",
       fontSize: 16,
       theme: "vs-dark",
     };
   }
 
-  // if we're on the client, return values from local storage bc localStorage is a browser API.
-  const savedLanguage = localStorage.getItem("editor-language") || "javascript";
+  // Only get theme and fontSize from localStorage - no language or code storage
   const savedTheme = localStorage.getItem("editor-theme") || "vs-dark";
   const savedFontSize = localStorage.getItem("editor-font-size") || 16;
 
   return {
-    language: savedLanguage,
     theme: savedTheme,
     fontSize: Number(savedFontSize),
   };
 };
-
-// Debounce utility for auto-saving
-let autoSaveTimeout: NodeJS.Timeout | null = null;
 
 export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
   const initialState = getInitialState();
 
   return {
     ...initialState,
+    language: "javascript", // Default language, but will be overridden by snippet data
     output: "",
     isRunning: false,
     error: null,
     editor: null,
     executionResult: null,
+    // Remove unused auto-save related state
     currentSnippetId: null,
     autoSaveCallback: null,
     isSaving: false,
@@ -46,10 +42,12 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
     getCode: () => get().editor?.getValue() || "",
 
     setEditor: (editor: monaco.editor.IStandaloneCodeEditor) => {
-      const savedCode = localStorage.getItem(`editor-code-${get().language}`);
-      if (savedCode) editor.setValue(savedCode);
-
+      // Remove localStorage code loading - this will be handled by EditorPanel
       set({ editor });
+    },
+
+    setSaving: (isSaving: boolean, message: string = "") => {
+      set({ isSaving, savingMessage: message });
     },
 
     setTheme: (theme: string) => {
@@ -62,63 +60,15 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
       set({ fontSize });
     },
 
+    // Remove setLanguage as it's not needed for edit pages
     setLanguage: (language: string) => {
-      // Save current language code before switching
-      const currentCode = get().editor?.getValue();
-      if (currentCode) {
-        localStorage.setItem(`editor-code-${get().language}`, currentCode);
-      }
-
-      localStorage.setItem("editor-language", language);
-
-      set({
-        language,
-        output: "",
-        error: null,
-      });
+      set({ language });
     },
 
-    // Auto-save functionality
-    setCurrentSnippetId: (snippetId: string | null) => {
-      set({ currentSnippetId: snippetId });
-    },
-
-    setAutoSaveCallback: (
-      callback: ((code: string) => Promise<void>) | null
-    ) => {
-      set({ autoSaveCallback: callback });
-    },
-
-    triggerAutoSave: () => {
-      const { currentSnippetId, autoSaveCallback, getCode, setSaving } = get();
-
-      if (!currentSnippetId || !autoSaveCallback) return;
-      console.log("GETTING CODE", getCode());
-
-      // Clear existing timeout
-      if (autoSaveTimeout) {
-        clearTimeout(autoSaveTimeout);
-      }
-
-      // Show saving status immediately
-      setSaving(true, "Auto-saving...");
-
-      // Set new timeout for debounced auto-save
-      autoSaveTimeout = setTimeout(async () => {
-        try {
-          const code = getCode();
-          await autoSaveCallback(code);
-          setSaving(false, "Auto-saved");
-
-          // Clear the success message after 2 seconds
-          setTimeout(() => setSaving(false), 2000);
-        } catch (error) {
-          console.error("Auto-save failed:", error);
-          setSaving(false, "Auto-save failed");
-          setTimeout(() => setSaving(false), 2000);
-        }
-      }, 2000); // 2 second delay
-    },
+    // Remove auto-save related methods as they're handled in EditorPanel now
+    setCurrentSnippetId: () => {},
+    setAutoSaveCallback: () => {},
+    triggerAutoSave: () => {},
 
     runCode: async () => {
       const { language, getCode } = get();
@@ -147,9 +97,7 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
 
         const data = await response.json();
 
-        console.log("data back from piston:", data);
-
-        // handle API-level erros
+        // handle API-level errors
         if (data.message) {
           set({
             error: data.message,
@@ -206,10 +154,6 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
       } finally {
         set({ isRunning: false });
       }
-    },
-
-    setSaving: (isSaving: boolean, message?: string) => {
-      set({ isSaving, savingMessage: message || "" });
     },
   };
 });

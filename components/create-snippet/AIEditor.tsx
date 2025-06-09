@@ -30,7 +30,7 @@ export default function AIEditor({
   language: string;
   theme: string;
   fontSize: number;
-  handleEditorChange: (value: string | undefined) => void;
+  handleEditorChange: () => void;
 }) {
   const room = useRoom();
   const provider = getYjsProviderForRoom(room);
@@ -73,8 +73,7 @@ export default function AIEditor({
 
       // Listen for content changes
       editor.onDidChangeModelContent(() => {
-        const value = editor.getValue();
-        handleEditorChange(value);
+        handleEditorChange();
       });
     },
     [setEditor, handleEditorChange, language]

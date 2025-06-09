@@ -15,7 +15,7 @@ export default function SavingStatusIndicator() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
-        savingMessage?.includes("saved")
+        savingMessage?.includes("Saved")
           ? "bg-green-500/10 border border-green-500/20"
           : "bg-orange-500/10 border border-orange-500/20"
       }`}
@@ -27,7 +27,7 @@ export default function SavingStatusIndicator() {
             {savingMessage || "Saving..."}
           </span>
         </>
-      ) : savingMessage.includes("saved") ? (
+      ) : savingMessage.includes("Saved") ? (
         <>
           <Check className="w-4 h-4 text-green-400" />
           <span className="text-sm text-green-400 font-medium">
