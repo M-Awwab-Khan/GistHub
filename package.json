@@ -27,6 +27,7 @@
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
     "framer-motion": "^12.15.0",
+    "frimousse": "^0.2.0",
     "lucide-react": "^0.511.0",
     "monacopilot": "^1.1.23",
     "next": "15.3.3",

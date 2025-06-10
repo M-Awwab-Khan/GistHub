@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
+import { EmojiPicker } from "frimousse";
 
 export interface Message {
   id: string;
@@ -29,10 +30,11 @@ export interface Message {
     count: number;
     reacted: boolean;
   }>;
+  isRead?: boolean; // Track if current user has read this message
 }
 
-// Emoji picker component
-function EmojiPicker({
+// Enhanced Emoji picker component using Frimousse
+function EnhancedEmojiPicker({
   onEmojiSelect,
   isOpen,
   onClose,
@@ -44,169 +46,6 @@ function EmojiPicker({
   theme?: "light" | "dark";
 }) {
   const pickerRef = useRef<HTMLDivElement>(null);
-
-  const emojis = [
-    "😀",
-    "😃",
-    "😄",
-    "😁",
-    "😆",
-    "😅",
-    "😂",
-    "🤣",
-    "😊",
-    "😇",
-    "🙂",
-    "🙃",
-    "😉",
-    "😌",
-    "😍",
-    "🥰",
-    "😘",
-    "😗",
-    "😙",
-    "😚",
-    "😋",
-    "😛",
-    "😝",
-    "😜",
-    "🤪",
-    "🤨",
-    "🧐",
-    "🤓",
-    "😎",
-    "🤩",
-    "🥳",
-    "😏",
-    "😒",
-    "😞",
-    "😔",
-    "😟",
-    "😕",
-    "🙁",
-    "☹️",
-    "😣",
-    "😖",
-    "😫",
-    "😩",
-    "🥺",
-    "😢",
-    "😭",
-    "😤",
-    "😠",
-    "😡",
-    "🤬",
-    "🤯",
-    "😳",
-    "🥵",
-    "🥶",
-    "😱",
-    "😨",
-    "😰",
-    "😥",
-    "😓",
-    "🤗",
-    "🤔",
-    "🤭",
-    "🤫",
-    "🤥",
-    "😶",
-    "😐",
-    "😑",
-    "😬",
-    "🙄",
-    "😯",
-    "😦",
-    "😧",
-    "😮",
-    "😲",
-    "🥱",
-    "😴",
-    "🤤",
-    "😪",
-    "😵",
-    "🤐",
-    "🥴",
-    "🤢",
-    "🤮",
-    "🤧",
-    "😷",
-    "🤒",
-    "🤕",
-    "🤑",
-    "🤠",
-    "😈",
-    "👍",
-    "👎",
-    "👌",
-    "🤞",
-    "✌️",
-    "🤟",
-    "🤘",
-    "👊",
-    "✊",
-    "🤛",
-    "🤜",
-    "👏",
-    "🙌",
-    "👐",
-    "🤲",
-    "🙏",
-    "✍️",
-    "💪",
-    "🦾",
-    "🦿",
-    "❤️",
-    "🧡",
-    "💛",
-    "💚",
-    "💙",
-    "💜",
-    "🖤",
-    "🤍",
-    "🤎",
-    "💔",
-    "❣️",
-    "💕",
-    "💞",
-    "💓",
-    "💗",
-    "💖",
-    "💘",
-    "💝",
-    "💟",
-    "☮️",
-    "✨",
-    "🎉",
-    "🎊",
-    "🎈",
-    "🎁",
-    "🏆",
-    "🥇",
-    "🥈",
-    "🥉",
-    "⭐",
-    "🌟",
-    "💫",
-    "☀️",
-    "⛅",
-    "☁️",
-    "🌧️",
-    "⛈️",
-    "🌩️",
-    "❄️",
-    "☃️",
-    "🔥",
-    "💯",
-    "💢",
-    "💨",
-    "💤",
-    "💦",
-    "💧",
-    "🌊",
-    "🎯",
-    "🎪",
-  ];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -235,29 +74,88 @@ function EmojiPicker({
     <div
       ref={pickerRef}
       className={cn(
-        "absolute bottom-12 right-0 w-64 h-48 p-3 rounded-lg border shadow-lg overflow-y-auto z-10",
+        "absolute bottom-12 right-0 w-80 h-96 rounded-lg border shadow-lg overflow-hidden z-10",
         isLightTheme
           ? "bg-white border-zinc-200"
           : "bg-zinc-800 border-zinc-700"
       )}
     >
-      <div className="grid grid-cols-8 gap-1">
-        {emojis.map((emoji, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              onEmojiSelect(emoji);
-              onClose();
-            }}
+      <EmojiPicker.Root
+        onEmojiSelect={({ emoji }) => {
+          onEmojiSelect(emoji);
+          onClose();
+        }}
+        className={cn(
+          "h-full w-full flex flex-col",
+          isLightTheme ? "bg-white text-zinc-900" : "bg-zinc-800 text-zinc-100"
+        )}
+      >
+        <EmojiPicker.Search
+          placeholder="Search emojis..."
+          className={cn(
+            "mx-3 mt-3 mb-2 px-3 py-2 rounded-md border-none text-sm",
+            "focus:outline-none focus:ring-1",
+            isLightTheme
+              ? "bg-zinc-100 text-zinc-900 placeholder-zinc-500 focus:ring-zinc-300"
+              : "bg-zinc-700 text-zinc-100 placeholder-zinc-400 focus:ring-zinc-500"
+          )}
+        />
+        <EmojiPicker.Viewport className="flex-1 px-1">
+          <EmojiPicker.Loading
             className={cn(
-              "w-8 h-8 flex items-center justify-center rounded hover:scale-110 transition-transform",
-              isLightTheme ? "hover:bg-zinc-100" : "hover:bg-zinc-700"
+              "flex items-center justify-center h-full text-sm",
+              isLightTheme ? "text-zinc-500" : "text-zinc-400"
             )}
           >
-            <span className="text-lg">{emoji}</span>
-          </button>
-        ))}
-      </div>
+            Loading emojis...
+          </EmojiPicker.Loading>
+          <EmojiPicker.Empty
+            className={cn(
+              "flex items-center justify-center h-full text-sm",
+              isLightTheme ? "text-zinc-500" : "text-zinc-400"
+            )}
+          >
+            No emoji found.
+          </EmojiPicker.Empty>
+          <EmojiPicker.List
+            className="pb-2"
+            components={{
+              CategoryHeader: ({ category, ...props }) => (
+                <div
+                  className={cn(
+                    "sticky top-0 px-3 py-2 text-xs font-medium",
+                    isLightTheme
+                      ? "bg-white text-zinc-600"
+                      : "bg-zinc-800 text-zinc-400"
+                  )}
+                  {...props}
+                >
+                  {category.label}
+                </div>
+              ),
+              Row: ({ children, ...props }) => (
+                <div className="px-2 mb-1" {...props}>
+                  {children}
+                </div>
+              ),
+              Emoji: ({ emoji, ...props }) => (
+                <button
+                  className={cn(
+                    "w-8 h-8 flex items-center justify-center rounded text-lg",
+                    "hover:scale-110 transition-transform data-[active]:scale-110",
+                    isLightTheme
+                      ? "hover:bg-zinc-100 data-[active]:bg-zinc-100"
+                      : "hover:bg-zinc-700 data-[active]:bg-zinc-700"
+                  )}
+                  {...props}
+                >
+                  {emoji.emoji}
+                </button>
+              ),
+            }}
+          />
+        </EmojiPicker.Viewport>
+      </EmojiPicker.Root>
     </div>
   );
 }
@@ -274,6 +172,7 @@ interface ChatCardProps {
   onSendMessage?: (message: string) => void;
   onReaction?: (messageId: string, emoji: string) => void;
   onMoreClick?: () => void;
+  onMarkAsRead?: (messageIds: string[]) => void; // New prop for marking messages as read
   className?: string;
   theme?: "light" | "dark";
 }
@@ -291,6 +190,7 @@ export function ChatCard({
   onSendMessage,
   onReaction,
   onMoreClick,
+  onMarkAsRead,
   className,
   theme = "dark",
 }: ChatCardProps) {
@@ -305,6 +205,17 @@ export function ChatCard({
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages]);
+
+  // Mark messages as read when component mounts or when new messages arrive
+  useEffect(() => {
+    const unreadMessageIds = messages
+      .filter((msg) => !msg.sender.isCurrentUser && !msg.isRead)
+      .map((msg) => msg.id);
+
+    if (unreadMessageIds.length > 0 && onMarkAsRead) {
+      onMarkAsRead(unreadMessageIds);
+    }
+  }, [messages, onMarkAsRead]);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -324,6 +235,7 @@ export function ChatCard({
         hour12: true,
       }),
       status: "sent",
+      isRead: true, // Current user's messages are always "read" by them
     };
 
     setMessages((prev) => [...prev, newMessage]);
@@ -360,15 +272,17 @@ export function ChatCard({
           if (existingReaction) {
             return {
               ...message,
-              reactions: newReactions.map((r) =>
-                r.emoji === emoji
-                  ? {
-                      ...r,
-                      count: r.reacted ? r.count - 1 : r.count + 1,
-                      reacted: !r.reacted,
-                    }
-                  : r
-              ),
+              reactions: newReactions
+                .map((r) =>
+                  r.emoji === emoji
+                    ? {
+                        ...r,
+                        count: r.reacted ? r.count - 1 : r.count + 1,
+                        reacted: !r.reacted,
+                      }
+                    : r
+                )
+                .filter((r) => r.count > 0),
             };
           } else {
             return {
@@ -538,18 +452,31 @@ export function ChatCard({
                 )}
               </div>
               <div className="flex items-center self-end mb-1">
-                {message.status === "read" && (
-                  <div className="flex">
-                    <CheckCheck className="w-4 h-4 text-blue-500" />
-                  </div>
-                )}
-                {message.status === "delivered" && (
-                  <Check
-                    className={cn(
-                      "w-4 h-4",
-                      isLightTheme ? "text-zinc-400" : "text-zinc-500"
+                {/* Only show status icons for current user's messages */}
+                {message.sender.isCurrentUser && (
+                  <>
+                    {message.status === "read" && (
+                      <div className="flex">
+                        <CheckCheck className="w-4 h-4 text-blue-500" />
+                      </div>
                     )}
-                  />
+                    {message.status === "delivered" && (
+                      <Check
+                        className={cn(
+                          "w-4 h-4",
+                          isLightTheme ? "text-zinc-400" : "text-zinc-500"
+                        )}
+                      />
+                    )}
+                    {message.status === "sent" && (
+                      <Check
+                        className={cn(
+                          "w-4 h-4",
+                          isLightTheme ? "text-zinc-400" : "text-zinc-500"
+                        )}
+                      />
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -600,8 +527,8 @@ export function ChatCard({
                 <SmilePlus className="w-5 h-5" />
               </button>
 
-              {/* Emoji Picker */}
-              <EmojiPicker
+              {/* Enhanced Emoji Picker */}
+              <EnhancedEmojiPicker
                 isOpen={isEmojiPickerOpen}
                 onClose={() => {
                   setIsEmojiPickerOpen(false);
