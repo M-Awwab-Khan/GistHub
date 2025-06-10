@@ -42,6 +42,7 @@ function ProfileHeader({
   user,
   starredSnippetsCount,
 }: ProfileHeaderProps) {
+  console.log(userStats);
   const STATS = [
     {
       label: "Code Executions",

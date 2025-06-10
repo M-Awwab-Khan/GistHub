@@ -27,7 +27,7 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
 
   return {
     ...initialState,
-    language: "javascript", // Default language, but will be overridden by snippet data
+    language: "javascript",
     output: "",
     isRunning: false,
     error: null,
@@ -44,6 +44,7 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
     setEditor: (editor: monaco.editor.IStandaloneCodeEditor) => {
       // Remove localStorage code loading - this will be handled by EditorPanel
       set({ editor });
+      set({ language: editor.getModel()?.getLanguageId() || "javascript" });
     },
 
     setSaving: (isSaving: boolean, message: string = "") => {
@@ -99,10 +100,24 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
 
         // handle API-level errors
         if (data.message) {
+          const errorMessage = data.message;
           set({
-            error: data.message,
-            executionResult: { code, output: "", error: data.message },
+            error: errorMessage,
+            executionResult: { code, output: "", error: errorMessage },
           });
+
+          // Save execution to database
+          try {
+            const { saveCodeExecution } = await import("@/lib/actions");
+            await saveCodeExecution({
+              language,
+              code,
+              output: null,
+              error: errorMessage,
+            });
+          } catch (dbError) {
+            console.error("Failed to save execution to database:", dbError);
+          }
           return;
         }
 
@@ -117,6 +132,19 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
               error,
             },
           });
+
+          // Save execution to database
+          try {
+            const { saveCodeExecution } = await import("@/lib/actions");
+            await saveCodeExecution({
+              language,
+              code,
+              output: null,
+              error,
+            });
+          } catch (dbError) {
+            console.error("Failed to save execution to database:", dbError);
+          }
           return;
         }
 
@@ -130,6 +158,19 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
               error,
             },
           });
+
+          // Save execution to database
+          try {
+            const { saveCodeExecution } = await import("@/lib/actions");
+            await saveCodeExecution({
+              language,
+              code,
+              output: null,
+              error,
+            });
+          } catch (dbError) {
+            console.error("Failed to save execution to database:", dbError);
+          }
           return;
         }
 
@@ -145,12 +186,39 @@ export const useCodeEditorStore = create<CodeEditorState>((set, get) => {
             error: null,
           },
         });
+
+        // Save successful execution to database
+        try {
+          const { saveCodeExecution } = await import("@/lib/actions");
+          await saveCodeExecution({
+            language,
+            code,
+            output: output.trim(),
+            error: null,
+          });
+        } catch (dbError) {
+          console.error("Failed to save execution to database:", dbError);
+        }
       } catch (error) {
         console.log("Error running code:", error);
+        const errorMessage = "Error running code";
         set({
-          error: "Error running code",
-          executionResult: { code, output: "", error: "Error running code" },
+          error: errorMessage,
+          executionResult: { code, output: "", error: errorMessage },
         });
+
+        // Save execution error to database
+        try {
+          const { saveCodeExecution } = await import("@/lib/actions");
+          await saveCodeExecution({
+            language,
+            code,
+            output: null,
+            error: errorMessage,
+          });
+        } catch (dbError) {
+          console.error("Failed to save execution to database:", dbError);
+        }
       } finally {
         set({ isRunning: false });
       }

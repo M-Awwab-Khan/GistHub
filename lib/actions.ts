@@ -49,12 +49,12 @@ export async function getUserStats(clerkUserId: string) {
   // Get language stats
   const languageStatsResult = await db
     .select({
-      language: codeExecutions.language,
+      language: snippets.language,
       count: count(),
     })
-    .from(codeExecutions)
-    .where(eq(codeExecutions.userId, clerkUserId))
-    .groupBy(codeExecutions.language)
+    .from(snippets)
+    .where(eq(snippets.userId, clerkUserId))
+    .groupBy(snippets.language)
     .orderBy(desc(count()));
 
   // Get most starred language
@@ -104,6 +104,38 @@ export async function getUserExecutions(
     .offset(offset);
 
   return executions;
+}
+
+// Save code execution result to the database
+export async function saveCodeExecution({
+  language,
+  code,
+  output,
+  error,
+}: {
+  language: string;
+  code: string;
+  output?: string | null;
+  error?: string | null;
+}) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const [execution] = await db
+    .insert(codeExecutions)
+    .values({
+      userId,
+      language,
+      code,
+      output: output || null,
+      error: error || null,
+    })
+    .returning();
+
+  return execution;
 }
 
 export async function getStarredSnippets(clerkUserId: string) {
@@ -426,6 +458,8 @@ export async function toggleSnippetVisibility(snippetId: string) {
     .where(eq(snippets.id, snippetId))
     .returning({ public: snippets.public });
 
+  revalidatePath(`/snippets/${snippetId}`);
+
   return {
     isPublic: updatedSnippet.public,
     publicUrl: updatedSnippet.public
@@ -726,6 +760,7 @@ export async function updateSnippetWithCollaboratorCheck({
   }
 
   await db.update(snippets).set(updateData).where(eq(snippets.id, snippetId));
+  revalidatePath(`/snippets/${snippetId}/edit`);
 
   return { success: true };
 }

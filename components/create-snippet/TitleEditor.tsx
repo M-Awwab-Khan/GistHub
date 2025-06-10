@@ -46,7 +46,7 @@ export default function TitleEditor({
       await updateSnippetTitleWithCollaboratorCheck(snippetId, title.trim());
       // onTitleUpdate(title.trim());
       setIsEditing(false);
-      setSaving(false, "Title saved");
+      setSaving(false, "Title Saved");
       toast.success("Title updated successfully");
 
       // Clear the success message after 2 seconds
