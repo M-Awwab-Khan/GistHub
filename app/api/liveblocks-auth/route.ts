@@ -1,5 +1,9 @@
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Liveblocks } from "@liveblocks/node";
 import { NextRequest } from "next/server";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * Authenticating your Liveblocks application
@@ -10,63 +14,74 @@ const liveblocks = new Liveblocks({
   secret: process.env.LIVEBLOCKS_SECRET_KEY!,
 });
 
-export async function POST(request: NextRequest) {
-  // Get the current user's unique id from your database
-  const userId = Math.floor(Math.random() * 10) % USER_INFO.length;
-
-  // Create a session for the current user
-  // userInfo is made available in Liveblocks presence hooks, e.g. useOthers
-  const session = liveblocks.prepareSession(`user-${userId}`, {
-    userInfo: USER_INFO[userId],
-  });
-
-  // Use a naming pattern to allow access to rooms with a wildcard
-  session.allow(`*`, session.FULL_ACCESS);
-
-  // Authorize the user and return the result
-  const { body, status } = await session.authorize();
-  return new Response(body, { status });
+// Generate a random color for the user
+function generateUserColor(): string {
+  const colors = [
+    "#D583F0",
+    "#F08385",
+    "#F0D885",
+    "#85EED6",
+    "#85BBF0",
+    "#8594F0",
+    "#85DBF0",
+    "#87EE85",
+    "#FF6B6B",
+    "#4ECDC4",
+    "#45B7D1",
+    "#96CEB4",
+    "#FFEAA7",
+    "#DDA0DD",
+    "#98D8C8",
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
 }
 
-const USER_INFO = [
-  {
-    name: "Charlie Layne",
-    color: "#D583F0",
-    picture: "https://liveblocks.io/avatars/avatar-1.png",
-  },
-  {
-    name: "Mislav Abha",
-    color: "#F08385",
-    picture: "https://liveblocks.io/avatars/avatar-2.png",
-  },
-  {
-    name: "Tatum Paolo",
-    color: "#F0D885",
-    picture: "https://liveblocks.io/avatars/avatar-3.png",
-  },
-  {
-    name: "Anjali Wanda",
-    color: "#85EED6",
-    picture: "https://liveblocks.io/avatars/avatar-4.png",
-  },
-  {
-    name: "Jody Hekla",
-    color: "#85BBF0",
-    picture: "https://liveblocks.io/avatars/avatar-5.png",
-  },
-  {
-    name: "Emil Joyce",
-    color: "#8594F0",
-    picture: "https://liveblocks.io/avatars/avatar-6.png",
-  },
-  {
-    name: "Jory Quispe",
-    color: "#85DBF0",
-    picture: "https://liveblocks.io/avatars/avatar-7.png",
-  },
-  {
-    name: "Quinn Elton",
-    color: "#87EE85",
-    picture: "https://liveblocks.io/avatars/avatar-8.png",
-  },
-];
+export async function POST(request: NextRequest) {
+  try {
+    // Get the current user's unique id from Clerk
+    const { userId } = await auth();
+
+    if (!userId) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    // Get user data from database
+    const userData = await db
+      .select()
+      .from(users)
+      .where(eq(users.userId, userId))
+      .limit(1);
+
+    if (!userData[0]) {
+      return new Response("User not found", { status: 404 });
+    }
+
+    // Get user profile picture from Clerk
+    const clerk = await clerkClient();
+    const clerkUser = await clerk.users.getUser(userId);
+
+    // Create a session for the current user
+    // userInfo is made available in Liveblocks presence hooks, e.g. useOthers
+    const session = liveblocks.prepareSession(`user-${userId}`, {
+      userInfo: {
+        name: userData[0].name,
+        color: generateUserColor(),
+        picture:
+          clerkUser.imageUrl ||
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            userData[0].name
+          )}&background=random`,
+      },
+    });
+
+    // Use a naming pattern to allow access to rooms with a wildcard
+    session.allow(`*`, session.FULL_ACCESS);
+
+    // Authorize the user and return the result
+    const { body, status } = await session.authorize();
+    return new Response(body, { status });
+  } catch (error) {
+    console.error("Liveblocks auth error:", error);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+}
