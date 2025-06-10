@@ -1,37 +1,26 @@
-"use client";
-
-import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Blocks, Code2, Sparkles, Users } from "lucide-react";
 import { SignedIn } from "@clerk/nextjs";
 import ThemeSelector from "./ThemeSelector";
-import LanguageSelector from "./LanguageSelector";
 import RunButton from "./RunButton";
 import HeaderProfileBtn from "./HeaderProfileBtn";
 import TitleEditor from "./TitleEditor";
 import SavingStatusIndicator from "./SavingStatusIndicator";
 import CollaboratorManager from "./CollaboratorManager";
-import { SnippetCollaborator } from "@/types";
+import { getSnippetCollaborators } from "@/lib/actions";
 
 interface HeaderProps {
   snippetId?: string;
   snippetTitle?: string;
-  onTitleUpdate?: (newTitle: string) => void;
-  // New props for collaboration
-  collaborators?: SnippetCollaborator[];
   isOwner?: boolean;
-  onCollaboratorsUpdate?: () => void;
 }
 
-function Header({
+async function Header({
   snippetId,
   snippetTitle,
-  onTitleUpdate,
-  collaborators = [],
   isOwner = false,
-  onCollaboratorsUpdate,
 }: HeaderProps) {
-  const { user } = useUser();
+  const collaborators = await getSnippetCollaborators(snippetId || "");
 
   return (
     <div className="relative z-10">
@@ -69,12 +58,8 @@ function Header({
           {/* Title Editor and Saving Status */}
           <div className="flex items-center gap-4">
             {/* Title Editor - only show if we have snippet data */}
-            {snippetId && snippetTitle && onTitleUpdate && (
-              <TitleEditor
-                snippetId={snippetId}
-                initialTitle={snippetTitle}
-                onTitleUpdate={onTitleUpdate}
-              />
+            {snippetId && snippetTitle && (
+              <TitleEditor snippetId={snippetId} initialTitle={snippetTitle} />
             )}
 
             {/* Saving Status Indicator */}
@@ -110,20 +95,19 @@ function Header({
           </div>
 
           {/* Collaborator Management Button - only show if we have snippet data and user is owner */}
-          {snippetId && isOwner && onCollaboratorsUpdate && (
+          {snippetId && isOwner && (
             <CollaboratorManager
               snippetId={snippetId}
               collaborators={collaborators}
               isOwner={isOwner}
-              onUpdate={onCollaboratorsUpdate}
             >
               <button
                 className="relative group flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-300 bg-gray-800/50 
-                hover:bg-blue-500/10 border border-gray-800 hover:border-blue-500/50 transition-all duration-300 shadow-lg overflow-hidden"
+                hover:bg-orange-500/10 border border-gray-800 hover:border-orange-500/50 transition-all duration-300 shadow-lg overflow-hidden"
               >
                 <div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 
-                  to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute inset-0 bg-gradient-to-r from-orange-500/10 
+                  to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
                 />
                 <Users className="w-4 h-4 relative z-10 group-hover:scale-110 transition-transform" />
                 <span className="text-sm font-medium relative z-10 group-hover:text-white transition-colors">

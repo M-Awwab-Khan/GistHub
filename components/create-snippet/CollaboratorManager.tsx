@@ -18,7 +18,6 @@ interface CollaboratorManagerProps {
   snippetId: string;
   collaborators: SnippetCollaborator[];
   isOwner: boolean;
-  onUpdate: () => void;
   children: React.ReactNode; // This will be the trigger button
 }
 
@@ -26,7 +25,6 @@ export default function CollaboratorManager({
   snippetId,
   collaborators,
   isOwner,
-  onUpdate,
   children,
 }: CollaboratorManagerProps) {
   const [email, setEmail] = useState("");
@@ -40,7 +38,6 @@ export default function CollaboratorManager({
       setLoading(true);
       await addCollaborator(snippetId, email.trim());
       setEmail("");
-      onUpdate();
       toast.success("Collaborator added successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to add collaborator");
@@ -54,7 +51,6 @@ export default function CollaboratorManager({
 
     try {
       await removeCollaborator(snippetId, userId);
-      onUpdate();
       toast.success("Collaborator removed successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to remove collaborator");

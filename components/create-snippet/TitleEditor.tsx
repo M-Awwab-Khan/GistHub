@@ -10,13 +10,11 @@ import toast from "react-hot-toast";
 interface TitleEditorProps {
   snippetId: string;
   initialTitle: string;
-  onTitleUpdate: (newTitle: string) => void;
 }
 
 export default function TitleEditor({
   snippetId,
   initialTitle,
-  onTitleUpdate,
 }: TitleEditorProps) {
   const [title, setTitle] = useState(initialTitle);
   const [isEditing, setIsEditing] = useState(false);
@@ -46,7 +44,7 @@ export default function TitleEditor({
     setSaving(true, "Saving title...");
     try {
       await updateSnippetTitleWithCollaboratorCheck(snippetId, title.trim());
-      onTitleUpdate(title.trim());
+      // onTitleUpdate(title.trim());
       setIsEditing(false);
       setSaving(false, "Title saved");
       toast.success("Title updated successfully");

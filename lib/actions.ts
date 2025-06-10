@@ -12,6 +12,7 @@ import {
 import { eq, desc, count, sql, or, and } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function getUserData() {
   const { userId } = await auth();
@@ -595,6 +596,8 @@ export async function addCollaborator(snippetId: string, email: string) {
     addedBy: userId,
   });
 
+  revalidatePath(`/snippets/${snippetId}/edit`);
+
   return { success: true, collaborator: user[0] };
 }
 
@@ -623,6 +626,8 @@ export async function removeCollaborator(
         eq(snippetCollaborators.userId, collaboratorUserId)
       )
     );
+
+  revalidatePath(`/snippets/${snippetId}/edit`);
 
   return { success: true };
 }
