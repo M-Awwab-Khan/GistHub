@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ListVideo, Loader2, Plus, Star, Code2 } from "lucide-react";
+import { ListVideo, Share2, Plus, Star, Code2 } from "lucide-react";
 import Link from "next/link";
 
 const TABS = [
@@ -17,6 +17,11 @@ const TABS = [
     icon: Star,
   },
   {
+    id: "shared",
+    label: "Shared Snippets",
+    icon: Share2,
+  },
+  {
     id: "executions",
     label: "Code Executions",
     icon: ListVideo,
@@ -27,15 +32,17 @@ interface ProfileTabsProps {
   executionsContent: React.ReactNode;
   snippetsContent: React.ReactNode;
   starredContent: React.ReactNode;
+  sharedContent: React.ReactNode;
 }
 
 export default function ProfileTabs({
   executionsContent,
   snippetsContent,
   starredContent,
+  sharedContent,
 }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<
-    "executions" | "snippets" | "starred"
+    "executions" | "snippets" | "starred" | "shared"
   >("snippets");
 
   return (
@@ -111,6 +118,7 @@ export default function ProfileTabs({
           {activeTab === "executions" && executionsContent}
           {activeTab === "snippets" && snippetsContent}
           {activeTab === "starred" && starredContent}
+          {activeTab === "shared" && sharedContent}
         </motion.div>
       </AnimatePresence>
     </div>

@@ -174,6 +174,29 @@ export async function getUserSnippets(clerkUserId: string) {
   return userSnippets;
 }
 
+export async function getSharedSnippets(clerkUserId: string) {
+  const sharedSnippets = await db
+    .select({
+      id: snippets.id,
+      title: snippets.title,
+      language: snippets.language,
+      code: snippets.code,
+      userName: snippets.userName,
+      userId: snippets.userId,
+      createdAt: snippets.createdAt,
+      updatedAt: snippets.updatedAt,
+      ownerName: snippets.userName,
+      addedBy: snippetCollaborators.addedBy,
+      sharedAt: snippetCollaborators.createdAt,
+    })
+    .from(snippetCollaborators)
+    .innerJoin(snippets, eq(snippetCollaborators.snippetId, snippets.id))
+    .where(eq(snippetCollaborators.userId, clerkUserId))
+    .orderBy(desc(snippetCollaborators.createdAt));
+
+  return sharedSnippets;
+}
+
 // Snippet operations
 export async function createSnippet({
   title,

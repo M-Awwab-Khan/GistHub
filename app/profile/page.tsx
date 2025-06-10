@@ -12,7 +12,9 @@ import {
   getUserExecutions,
   getStarredSnippets,
   getUserSnippets,
+  getSharedSnippets,
 } from "@/lib/actions";
+import SharedSnippetsList from "@/components/profile/SharedSnippetsList";
 
 export default async function ProfilePage() {
   const user = await currentUser();
@@ -22,14 +24,21 @@ export default async function ProfilePage() {
   }
 
   // Fetch all data in parallel
-  const [userData, userStats, executions, starredSnippets, userSnippets] =
-    await Promise.all([
-      getUserData(),
-      getUserStats(user.id),
-      getUserExecutions(user.id, 10, 0),
-      getStarredSnippets(user.id),
-      getUserSnippets(user.id),
-    ]);
+  const [
+    userData,
+    userStats,
+    executions,
+    starredSnippets,
+    userSnippets,
+    sharedSnippets,
+  ] = await Promise.all([
+    getUserData(),
+    getUserStats(user.id),
+    getUserExecutions(user.id, 10, 0),
+    getStarredSnippets(user.id),
+    getUserSnippets(user.id),
+    getSharedSnippets(user.id),
+  ]);
 
   if (!userData) {
     // If user data doesn't exist in our database, you might want to create it here
@@ -59,6 +68,7 @@ export default async function ProfilePage() {
           starredContent={
             <StarredSnippetsList starredSnippets={starredSnippets} />
           }
+          sharedContent={<SharedSnippetsList sharedSnippets={sharedSnippets} />}
         />
       </div>
     </div>
