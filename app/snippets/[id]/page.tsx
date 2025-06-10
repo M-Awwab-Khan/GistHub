@@ -9,13 +9,34 @@ import { getSnippetWithAccess, getSnippetComments } from "@/lib/actions";
 import { auth } from "@clerk/nextjs/server";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<{ title: string }> {
+  const snippetId = (await params).id;
+
+  try {
+    const snippet = await getSnippetWithAccess(snippetId);
+
+    if (!snippet) {
+      return { title: "Snippet Not Found" };
+    }
+
+    return {
+      title: `Snippet: ${snippet.title}`,
+    };
+  } catch (error) {
+    console.error("Error fetching snippet metadata:", error);
+    return { title: "Error Loading Snippet" };
+  }
 }
 
 async function SnippetDetailPage({ params }: PageProps) {
-  const snippetId = params.id;
+  const snippetId = (await params).id;
 
   try {
     const { userId } = await auth();

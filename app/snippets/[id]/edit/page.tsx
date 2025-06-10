@@ -9,15 +9,47 @@ import { Room } from "./Room";
 import Header from "@/components/create-snippet/Header";
 import EditorPanel from "@/components/create-snippet/EditorPanel";
 import OutputPanel from "@/components/create-snippet/OutputPanel";
+import { Metadata } from "next";
 
 interface SnippetWithCollaborators extends Snippet {
   collaborators: SnippetCollaborator[];
 }
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return {
+      title: "Sign In Required",
+    };
+  }
+
+  try {
+    const snippetData = await getSnippetWithCollaborators((await params).id);
+    const snippet = snippetData as SnippetWithCollaborators;
+
+    if (!snippet) {
+      return {
+        title: "Snippet Not Found",
+      };
+    }
+
+    return {
+      title: `Edit: ${snippet.title}`,
+    };
+  } catch (error) {
+    return {
+      title: "Error Loading Snippet",
+    };
+  }
 }
 
 export default async function EditSnippetPage({ params }: PageProps) {
@@ -28,7 +60,7 @@ export default async function EditSnippetPage({ params }: PageProps) {
     redirect("/sign-in");
   }
 
-  const snippetId = params.id;
+  const snippetId = (await params).id;
 
   try {
     // Fetch data server-side in parallel

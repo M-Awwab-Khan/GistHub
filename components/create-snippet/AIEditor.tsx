@@ -5,9 +5,8 @@ import { getYjsProviderForRoom } from "@liveblocks/yjs";
 import { useRoom } from "@liveblocks/react/suspense";
 import { MonacoBinding } from "y-monaco";
 import { Awareness } from "y-protocols/awareness";
-import styles from "./CollaborativeEditor.module.css";
 
-import MonacoEditor, { Editor } from "@monaco-editor/react";
+import { Editor } from "@monaco-editor/react";
 import {
   registerCompletion,
   type CompletionRegistration,
@@ -16,8 +15,6 @@ import {
 } from "monacopilot";
 import { defineMonacoThemes, LANGUAGE_CONFIG } from "@/constants";
 import { Cursors } from "./Cursors";
-import { Avatars } from "./Avatars";
-import { Toolbar } from "./Toolbar";
 
 export default function AIEditor({
   setEditor,
@@ -89,12 +86,6 @@ export default function AIEditor({
     <div className="relative">
       {/* Live cursors overlay */}
       {provider ? <Cursors yProvider={provider} /> : null}
-
-      {/* Collaboration header with avatars */}
-      <div className={styles.editorHeader}>
-        <div>{editorRef ? <Toolbar editor={editorRef} /> : null}</div>
-        <Avatars />
-      </div>
 
       {/* Monaco Editor */}
       <Editor

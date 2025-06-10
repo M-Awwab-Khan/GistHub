@@ -14,11 +14,6 @@ function NavigationHeader() {
             <Link href="/" className="flex items-center gap-3 group relative">
               {/* Logo hover effect */}
 
-              <div
-                className="absolute -inset-2 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-lg opacity-0 
-                group-hover:opacity-100 transition-all duration-500 blur-xl"
-              />
-
               {/* Logo */}
               <div
                 className="relative bg-gradient-to-br from-[#1a1a2e] to-[#0a0a0f] p-2 rounded-xl ring-1
@@ -28,10 +23,10 @@ function NavigationHeader() {
               </div>
 
               <div className="flex flex-col">
-                <span className="block text-lg font-semibold bg-gradient-to-r from-orange-400 via-amber-300 to-orange-400 text-transparent bg-clip-text">
+                <span className="block text-lg font-semibold text-orange-400">
                   GistHub
                 </span>
-                <span className="block text-xs text-orange-400/60 font-medium">
+                <span className="block text-xs text-orange-400/60 font-medium text-orange-400">
                   Interactive Code Editor
                 </span>
               </div>

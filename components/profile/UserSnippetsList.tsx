@@ -45,62 +45,56 @@ export default function UserSnippetsList({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {userSnippets.map((snippet) => (
         <div key={snippet.id} className="group relative">
-          <Link href={`/snippets/${snippet.id}`}>
-            <div
-              className="bg-black/20 rounded-xl border border-gray-800/50 hover:border-gray-700/50 
+          <div
+            className="bg-black/20 rounded-xl border border-gray-800/50 hover:border-gray-700/50 
                           transition-all duration-300 overflow-hidden h-full group-hover:transform
                         group-hover:scale-[1.02]"
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition-opacity" />
-                      <Image
-                        src={`/${snippet.language}.png`}
-                        alt={`${snippet.language} logo`}
-                        className="relative z-10"
-                        width={20}
-                        height={20}
-                      />
-                    </div>
-                    <span className="px-3 py-1 bg-orange-500/10 text-orange-400 rounded-lg text-sm">
-                      {snippet.language}
-                    </span>
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition-opacity" />
+                    <Image
+                      src={`/${snippet.language}.png`}
+                      alt={`${snippet.language} logo`}
+                      className="relative z-10"
+                      width={20}
+                      height={20}
+                    />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/snippets/${snippet.id}/edit`}
-                      className="p-2 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-all"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Link>
-                  </div>
+                  <span className="px-3 py-1 bg-orange-500/10 text-orange-400 rounded-lg text-sm">
+                    {snippet.language}
+                  </span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/snippets/${snippet.id}/edit`}
+                    className="p-2 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-all"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+              <Link href={`/snippets/${snippet.id}`}>
                 <h2 className="text-xl font-semibold text-white mb-3 line-clamp-1 group-hover:text-blue-400 transition-colors">
                   {snippet.title}
                 </h2>
-                <div className="flex items-center justify-between text-sm text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span>
-                      {new Date(snippet.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <div className="flex items-center justify-between text-sm text-gray-400">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>
+                    {new Date(snippet.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
-              <div className="px-6 pb-6">
-                {/* <div className="bg-black/30 rounded-lg p-4 overflow-hidden">
-                  <pre className="text-sm text-gray-300 font-mono line-clamp-3">
-                    {snippet.code}
-                  </pre>
-                </div> */}
-                <CodeBlock code={snippet.code} language={snippet.language} />
-              </div>
             </div>
-          </Link>
+            <div className="px-6 pb-6">
+              <CodeBlock code={snippet.code} language={snippet.language} />
+            </div>
+          </div>
         </div>
       ))}
     </div>

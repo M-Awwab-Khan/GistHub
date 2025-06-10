@@ -1,7 +1,6 @@
 import { Suspense } from "react";
-import { ArrowRightIcon, BookOpen, Code, X } from "lucide-react";
+import { BookOpen, Code, X } from "lucide-react";
 import NavigationHeader from "@/components/NavigationHeader";
-import SnippetsPageSkeleton from "@/components/discover-snippets/SnippetsPageSkeleton";
 import SnippetCard from "@/components/discover-snippets/SnippetCard";
 import SearchAndFilters from "@/components/discover-snippets/SearchAndFilters";
 import Pagination from "@/components/discover-snippets/Pagination";
@@ -16,6 +15,14 @@ interface SnippetsPageProps {
     language?: string;
     view?: "grid" | "list";
   }>;
+}
+
+export async function generateMetadata(): Promise<{
+  title: string;
+}> {
+  return {
+    title: "Discover Code Snippets",
+  };
 }
 
 export default async function SnippetsPage({
@@ -50,7 +57,7 @@ export default async function SnippetsPage({
           <div className="z-10 flex min-h-16 mb-2 items-center justify-center">
             <div
               className={cn(
-                "group rounded-full border border-orange-500/20 bg-orange-500/10 text-base text-white transition-all ease-in hover:cursor-pointer hover:bg-orange-500/20 dark:border-orange-500/20 dark:bg-orange-500/10 dark:hover:bg-orange-500/20"
+                "group rounded-full border border-orange-500/20 bg-orange-500/20 text-base text-white transition-all ease-in hover:cursor-pointer hover:bg-orange-500/20 dark:border-orange-500/20 dark:bg-orange-500/10 dark:hover:bg-orange-500/20"
               )}
             >
               <AnimatedShinyText className="gap-2 inline-flex items-center justify-center px-4 py-1 transition ease-out hover:text-orange-300 hover:duration-300 hover:dark:text-orange-300">
