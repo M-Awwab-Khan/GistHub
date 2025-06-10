@@ -9,6 +9,7 @@ import { Room } from "./Room";
 import Header from "@/components/create-snippet/Header";
 import EditorPanel from "@/components/create-snippet/EditorPanel";
 import OutputPanel from "@/components/create-snippet/OutputPanel";
+import { FloatingChatButton } from "@/components/chat/FloatingChatButton";
 import { Metadata } from "next";
 
 interface SnippetWithCollaborators extends Snippet {
@@ -124,6 +125,9 @@ export default async function EditSnippetPage({ params }: PageProps) {
               <OutputPanel />
             </div>
           </div>
+
+          {/* Floating Chat Button */}
+          <FloatingChatButton />
         </div>
       </Room>
     );
