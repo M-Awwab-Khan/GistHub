@@ -77,6 +77,19 @@ export function Header() {
           >
             FAQ
           </Link>
+          <Link
+            href="/create-snippet"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Create Snippet
+          </Link>
+          <Link
+            href="/profile"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <CircleUserRound className="inline size-4 mr-1" />
+            Profile
+          </Link>
         </nav>
         <div className="hidden md:flex gap-4 items-center">
           <Button
@@ -191,6 +204,21 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               FAQ
+            </Link>
+            <Link
+              href="/create-snippet"
+              className="py-2 text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Create Snippet
+            </Link>
+            <Link
+              href="/profile"
+              className="py-2 text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <CircleUserRound className="inline size-4 mr-1" />
+              Profile
             </Link>
             <SignedOut>
               <div className="flex flex-col gap-2 pt-2 border-t">
